@@ -42,7 +42,10 @@ export const getStationViewConfig = () => {
  */
 export const fetchStationData = async (stationName = 'KDS') => {
   try {
+    console.log(`[StationService] Fetching station data for ${stationName}...`);
     const response = await api.get('/api/v1/vendoremployee/employee-menu');
+    
+    console.log('[StationService] Raw API response:', response.data);
     
     const data = response.data;
     
@@ -68,6 +71,8 @@ export const fetchStationData = async (stationName = 'KDS') => {
     
     const totalItems = categories.reduce((sum, cat) => sum + cat.totalCount, 0);
     
+    console.log(`[StationService] Parsed ${categories.length} categories, ${totalItems} total items`);
+    
     return {
       stationName,
       categories,
@@ -76,6 +81,7 @@ export const fetchStationData = async (stationName = 'KDS') => {
     };
   } catch (error) {
     console.error(`[StationService] Failed to fetch station data for ${stationName}:`, error);
+    console.error('[StationService] Error details:', error.response?.data || error.message);
     return {
       stationName,
       categories: [],
