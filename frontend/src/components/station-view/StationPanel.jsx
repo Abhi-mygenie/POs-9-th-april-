@@ -14,7 +14,6 @@ const COLORS = {
   lightBg: '#f8f9fa',
   borderGray: '#e0e0e0',
   white: '#ffffff',
-  headerBg: '#FFF3E0', // Light orange for header
 };
 
 // Category colors (cycle through these)
@@ -37,126 +36,90 @@ const getCategoryColor = (index) => {
 };
 
 /**
- * Station Item Row - Single item with category and count (table row style)
+ * Station Item Row - Single item with dotted line and count
  */
-const StationItemRow = ({ itemName, categoryName, count, categoryColor }) => (
+const StationItemRow = ({ itemName, count }) => (
   <div 
-    className="grid grid-cols-12 items-center py-2 px-3 border-b"
-    style={{ borderColor: COLORS.borderGray }}
+    className="flex items-center py-1.5 px-3 pl-6"
+    style={{ borderBottom: `1px solid ${COLORS.borderGray}20` }}
   >
-    {/* Item Name - 5 cols */}
-    <div className="col-span-5 text-sm" style={{ color: COLORS.darkText }}>
+    {/* Item Name */}
+    <span className="text-sm flex-1" style={{ color: COLORS.darkText }}>
       {itemName}
-    </div>
+    </span>
     
-    {/* Dotted line - 3 cols */}
-    <div className="col-span-3 border-b border-dotted mx-1" style={{ borderColor: COLORS.grayText }}></div>
-    
-    {/* Category - 2 cols */}
-    <div className="col-span-2 text-xs font-medium truncate" style={{ color: categoryColor }}>
-      {categoryName}
-    </div>
-    
-    {/* Quantity - 2 cols */}
-    <div className="col-span-2 text-right">
-      <span 
-        className="text-sm font-bold px-2 py-0.5 rounded"
-        style={{ 
-          backgroundColor: `${COLORS.primaryGreen}15`,
-          color: COLORS.primaryGreen,
-        }}
-      >
-        {count}
-      </span>
-    </div>
-  </div>
-);
-
-/**
- * Category Header Row
- */
-const CategoryHeaderRow = ({ categoryName, totalCount, categoryColor, isExpanded, onToggle, displayMode }) => (
-  <div 
-    className={`grid grid-cols-12 items-center py-2 px-3 ${displayMode === 'accordion' ? 'cursor-pointer' : ''}`}
-    style={{ 
-      backgroundColor: `${categoryColor}15`,
-      borderLeft: `3px solid ${categoryColor}`,
-    }}
-    onClick={displayMode === 'accordion' ? onToggle : undefined}
-  >
-    {/* Toggle icon + Item label */}
-    <div className="col-span-5 flex items-center gap-2">
-      {displayMode === 'accordion' && (
-        isExpanded 
-          ? <ChevronDown className="w-4 h-4" style={{ color: categoryColor }} />
-          : <ChevronRight className="w-4 h-4" style={{ color: COLORS.grayText }} />
-      )}
-      <span className="text-xs font-semibold uppercase" style={{ color: COLORS.grayText }}>Item</span>
-    </div>
-    
-    {/* Spacer */}
-    <div className="col-span-3"></div>
-    
-    {/* Category Name */}
-    <div className="col-span-2 text-sm font-bold truncate" style={{ color: categoryColor }}>
-      {categoryName}
-    </div>
+    {/* Dotted line */}
+    <div 
+      className="flex-1 mx-2 border-b border-dotted" 
+      style={{ borderColor: COLORS.grayText, minWidth: '20px' }}
+    />
     
     {/* Quantity */}
-    <div className="col-span-2 text-right">
-      <span 
-        className="text-xs font-bold px-2 py-0.5 rounded-full"
-        style={{ 
-          backgroundColor: categoryColor,
-          color: COLORS.white,
-        }}
-      >
-        {totalCount}
-      </span>
-    </div>
+    <span 
+      className="text-sm font-semibold min-w-[32px] text-center"
+      style={{ color: COLORS.primaryGreen }}
+    >
+      {count}
+    </span>
   </div>
 );
 
 /**
- * Station Category - Category header + items
+ * Category Section - Category header + items (Option C style)
  */
-const StationCategory = ({ category, categoryIndex, isExpanded, onToggle, displayMode }) => {
-  const [expanded, setExpanded] = useState(isExpanded);
+const CategorySection = ({ category, categoryIndex, displayMode }) => {
+  const [expanded, setExpanded] = useState(true);
   const categoryColor = getCategoryColor(categoryIndex);
-  
-  useEffect(() => {
-    setExpanded(isExpanded);
-  }, [isExpanded]);
+
+  // In stacked mode, always expanded. In accordion mode, toggle.
+  const isExpanded = displayMode === 'stacked' ? true : expanded;
 
   const handleToggle = () => {
     if (displayMode === 'accordion') {
       setExpanded(!expanded);
-      onToggle?.();
     }
   };
 
   return (
     <div className="mb-1">
-      {/* Category Header */}
-      <CategoryHeaderRow
-        categoryName={category.name}
-        totalCount={category.totalCount}
-        categoryColor={categoryColor}
-        isExpanded={expanded}
-        onToggle={handleToggle}
-        displayMode={displayMode}
-      />
+      {/* Category Header Row */}
+      <div 
+        className={`flex items-center justify-between py-2 px-3 ${displayMode === 'accordion' ? 'cursor-pointer' : ''}`}
+        style={{ 
+          backgroundColor: `${categoryColor}10`,
+          borderLeft: `3px solid ${categoryColor}`,
+        }}
+        onClick={handleToggle}
+      >
+        <div className="flex items-center gap-2">
+          {displayMode === 'accordion' && (
+            isExpanded 
+              ? <ChevronDown className="w-4 h-4" style={{ color: categoryColor }} />
+              : <ChevronRight className="w-4 h-4" style={{ color: COLORS.grayText }} />
+          )}
+          <span className="text-sm font-semibold" style={{ color: categoryColor }}>
+            {category.name}
+          </span>
+        </div>
+        <span 
+          className="text-xs font-bold px-2 py-0.5 rounded-full"
+          style={{ 
+            backgroundColor: categoryColor,
+            color: COLORS.white,
+          }}
+        >
+          {category.totalCount}
+        </span>
+      </div>
       
-      {/* Category Items */}
-      {(displayMode === 'stacked' || expanded) && (
+      {/* Items */}
+      {isExpanded && (
         <div>
           {category.items.map((item, idx) => (
             <StationItemRow 
               key={idx} 
               itemName={item.name} 
-              categoryName={category.name}
               count={item.count}
-              categoryColor={categoryColor}
             />
           ))}
         </div>
@@ -169,36 +132,12 @@ const StationCategory = ({ category, categoryIndex, isExpanded, onToggle, displa
  * Single Station Panel
  */
 const SingleStationPanel = ({ stationName, stationIcon, data, loading, error, displayMode, onRefresh }) => {
-  const [expandedCategories, setExpandedCategories] = useState(new Set());
-
-  // In stacked mode, all categories are expanded by default
-  useEffect(() => {
-    if (displayMode === 'stacked' && data?.categories) {
-      setExpandedCategories(new Set(data.categories.map((_, i) => i)));
-    } else if (displayMode === 'accordion') {
-      // In accordion mode, expand first category by default
-      setExpandedCategories(new Set([0]));
-    }
-  }, [displayMode, data?.categories]);
-
-  const toggleCategory = (idx) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(idx)) {
-        newSet.delete(idx);
-      } else {
-        newSet.add(idx);
-      }
-      return newSet;
-    });
-  };
-
   return (
     <div 
-      className="h-full flex flex-col"
+      className="flex flex-col"
       style={{ 
         backgroundColor: COLORS.white,
-        borderRight: `1px solid ${COLORS.borderGray}`,
+        borderBottom: `1px solid ${COLORS.borderGray}`,
       }}
     >
       {/* Station Header */}
@@ -239,16 +178,16 @@ const SingleStationPanel = ({ stationName, stationIcon, data, loading, error, di
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="overflow-y-auto">
         {loading && !data?.categories?.length && (
-          <div className="flex items-center justify-center h-32">
+          <div className="flex items-center justify-center h-20">
             <RefreshCw className="w-6 h-6 animate-spin" style={{ color: COLORS.primaryOrange }} />
           </div>
         )}
 
         {error && (
           <div 
-            className="flex items-center gap-2 p-3 rounded-lg"
+            className="flex items-center gap-2 p-3 rounded-lg m-2"
             style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}
           >
             <AlertCircle className="w-4 h-4" />
@@ -258,21 +197,19 @@ const SingleStationPanel = ({ stationName, stationIcon, data, loading, error, di
 
         {!loading && !error && data?.categories?.length === 0 && (
           <div 
-            className="flex flex-col items-center justify-center h-32 text-center"
+            className="flex flex-col items-center justify-center h-20 text-center"
             style={{ color: COLORS.grayText }}
           >
-            <span className="text-3xl mb-2">✓</span>
+            <span className="text-2xl mb-1">✓</span>
             <span className="text-sm">No pending items</span>
           </div>
         )}
 
         {data?.categories?.map((category, idx) => (
-          <StationCategory
+          <CategorySection
             key={idx}
             category={category}
             categoryIndex={idx}
-            isExpanded={expandedCategories.has(idx)}
-            onToggle={() => toggleCategory(idx)}
             displayMode={displayMode}
           />
         ))}
@@ -348,11 +285,12 @@ const StationPanel = ({ className = '' }) => {
 
   return (
     <div 
-      className={`flex flex-col h-full ${className}`}
+      className={`flex flex-col overflow-y-auto ${className}`}
       style={{ 
         width: '280px',
         minWidth: '280px',
         maxWidth: '320px',
+        borderRight: `1px solid ${COLORS.borderGray}`,
       }}
       data-testid="station-panel"
     >
