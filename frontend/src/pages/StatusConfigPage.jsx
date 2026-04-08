@@ -12,6 +12,9 @@ const STORAGE_KEY = 'mygenie_enabled_statuses';
 // LocalStorage key for station view config
 const STATION_VIEW_STORAGE_KEY = 'mygenie_station_view_config';
 
+// LocalStorage key for channel visibility
+const CHANNEL_VISIBILITY_STORAGE_KEY = 'mygenie_channel_visibility';
+
 // Station icons mapping
 const STATION_ICONS = {
   KDS: '🍳',
@@ -27,6 +30,20 @@ const DEFAULT_STATION_VIEW_CONFIG = {
   displayMode: 'stacked', // 'stacked' | 'accordion'
 };
 
+// Available channels
+const ALL_CHANNELS = [
+  { id: 'dine_in', label: 'Dine-In', description: 'In-restaurant dining orders', icon: '🍽️' },
+  { id: 'takeaway', label: 'TakeAway', description: 'Takeaway/pickup orders', icon: '🥡' },
+  { id: 'delivery', label: 'Delivery', description: 'Delivery orders', icon: '🚗' },
+  { id: 'room', label: 'Room', description: 'Room service orders', icon: '🛏️' },
+];
+
+// Default channel visibility config - all enabled
+const DEFAULT_CHANNEL_CONFIG = {
+  enabled: true,
+  channels: ALL_CHANNELS.map(c => c.id),  // All channels enabled by default
+};
+
 // All 9 status definitions (same as Header.jsx)
 const ALL_STATUSES = [
   { id: "pending", fOrderStatus: 7, label: "YTC", description: "Yet to Confirm orders" },
@@ -40,8 +57,8 @@ const ALL_STATUSES = [
   { id: "reserved", fOrderStatus: 10, label: "Reserved", description: "Reserved tables/orders" },
 ];
 
-// Default: all statuses enabled
-const DEFAULT_ENABLED = ALL_STATUSES.map(s => s.id);
+// Default: Only status 7, 1, 2, 5 enabled (YTC, Preparing, Ready, Served)
+const DEFAULT_ENABLED = ["pending", "preparing", "ready", "served"];  // Status 7, 1, 2, 5
 
 /**
  * StatusConfigPage - Configure which statuses are visible on the dashboard
