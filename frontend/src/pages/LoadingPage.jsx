@@ -124,10 +124,21 @@ const LoadingPage = () => {
         
         console.log('[LoadingPage] Loading station data for:', stationsToLoad);
         
+        // Build categories map for lookup (category_id -> category_name)
+        const categories = data.categories || [];
+        const categoriesMap = {};
+        categories.forEach(cat => {
+          if (cat.categoryId) {
+            categoriesMap[cat.categoryId] = cat.name;
+            categoriesMap[String(cat.categoryId)] = cat.name;
+          }
+        });
+        console.log('[LoadingPage] Categories map:', categoriesMap);
+        
         // Fetch data for each enabled station in parallel
         if (savedConfig.enabled !== false && stationsToLoad.length > 0) {
           const stationDataPromises = stationsToLoad.map(station => 
-            stationService.fetchStationData(station)
+            stationService.fetchStationData(station, categoriesMap)
           );
           const stationResults = await Promise.all(stationDataPromises);
           

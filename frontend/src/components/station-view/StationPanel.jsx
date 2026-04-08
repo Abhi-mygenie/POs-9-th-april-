@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, ChevronRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { fetchStationData } from '../../api/services/stationService';
-import { useStations } from '../../contexts';
+import { useStations, useMenu } from '../../contexts';
 
 // Color scheme matching the app
 const COLORS = {
@@ -14,36 +14,115 @@ const COLORS = {
   lightBg: '#f8f9fa',
   borderGray: '#e0e0e0',
   white: '#ffffff',
+  headerBg: '#FFF3E0', // Light orange for header
+};
+
+// Category colors (cycle through these)
+const CATEGORY_COLORS = [
+  '#F27329', // Orange
+  '#8B4513', // Brown
+  '#DC3545', // Red
+  '#28A745', // Green
+  '#6C63FF', // Purple
+  '#17A2B8', // Teal
+  '#E91E63', // Pink
+  '#FF9800', // Amber
+];
+
+/**
+ * Get color for category based on index
+ */
+const getCategoryColor = (index) => {
+  return CATEGORY_COLORS[index % CATEGORY_COLORS.length];
 };
 
 /**
- * Station Item Row - Single item with count
+ * Station Item Row - Single item with category and count (table row style)
  */
-const StationItem = ({ name, count }) => (
+const StationItemRow = ({ itemName, categoryName, count, categoryColor }) => (
   <div 
-    className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded"
-    style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
+    className="grid grid-cols-12 items-center py-2 px-3 border-b"
+    style={{ borderColor: COLORS.borderGray }}
   >
-    <span className="text-sm truncate flex-1" style={{ color: COLORS.darkText }}>
-      {name}
-    </span>
-    <span 
-      className="text-sm font-semibold ml-2 px-2 py-0.5 rounded-full"
-      style={{ 
-        backgroundColor: `${COLORS.primaryOrange}15`,
-        color: COLORS.primaryOrange,
-      }}
-    >
-      {count}
-    </span>
+    {/* Item Name - 5 cols */}
+    <div className="col-span-5 text-sm" style={{ color: COLORS.darkText }}>
+      {itemName}
+    </div>
+    
+    {/* Dotted line - 3 cols */}
+    <div className="col-span-3 border-b border-dotted mx-1" style={{ borderColor: COLORS.grayText }}></div>
+    
+    {/* Category - 2 cols */}
+    <div className="col-span-2 text-xs font-medium truncate" style={{ color: categoryColor }}>
+      {categoryName}
+    </div>
+    
+    {/* Quantity - 2 cols */}
+    <div className="col-span-2 text-right">
+      <span 
+        className="text-sm font-bold px-2 py-0.5 rounded"
+        style={{ 
+          backgroundColor: `${COLORS.primaryGreen}15`,
+          color: COLORS.primaryGreen,
+        }}
+      >
+        {count}
+      </span>
+    </div>
   </div>
 );
 
 /**
- * Station Category - Collapsible category with items
+ * Category Header Row
  */
-const StationCategory = ({ category, isExpanded, onToggle, displayMode }) => {
+const CategoryHeaderRow = ({ categoryName, totalCount, categoryColor, isExpanded, onToggle, displayMode }) => (
+  <div 
+    className={`grid grid-cols-12 items-center py-2 px-3 ${displayMode === 'accordion' ? 'cursor-pointer' : ''}`}
+    style={{ 
+      backgroundColor: `${categoryColor}15`,
+      borderLeft: `3px solid ${categoryColor}`,
+    }}
+    onClick={displayMode === 'accordion' ? onToggle : undefined}
+  >
+    {/* Toggle icon + Item label */}
+    <div className="col-span-5 flex items-center gap-2">
+      {displayMode === 'accordion' && (
+        isExpanded 
+          ? <ChevronDown className="w-4 h-4" style={{ color: categoryColor }} />
+          : <ChevronRight className="w-4 h-4" style={{ color: COLORS.grayText }} />
+      )}
+      <span className="text-xs font-semibold uppercase" style={{ color: COLORS.grayText }}>Item</span>
+    </div>
+    
+    {/* Spacer */}
+    <div className="col-span-3"></div>
+    
+    {/* Category Name */}
+    <div className="col-span-2 text-sm font-bold truncate" style={{ color: categoryColor }}>
+      {categoryName}
+    </div>
+    
+    {/* Quantity */}
+    <div className="col-span-2 text-right">
+      <span 
+        className="text-xs font-bold px-2 py-0.5 rounded-full"
+        style={{ 
+          backgroundColor: categoryColor,
+          color: COLORS.white,
+        }}
+      >
+        {totalCount}
+      </span>
+    </div>
+  </div>
+);
+
+/**
+ * Station Category - Category header + items
+ */
+const StationCategory = ({ category, categoryIndex, isExpanded, onToggle, displayMode }) => {
   const [expanded, setExpanded] = useState(isExpanded);
+  const categoryColor = getCategoryColor(categoryIndex);
   
   useEffect(() => {
     setExpanded(isExpanded);
@@ -57,46 +136,28 @@ const StationCategory = ({ category, isExpanded, onToggle, displayMode }) => {
   };
 
   return (
-    <div className="mb-2">
+    <div className="mb-1">
       {/* Category Header */}
-      <div
-        onClick={handleToggle}
-        className={`flex items-center justify-between py-2 px-3 rounded-lg ${
-          displayMode === 'accordion' ? 'cursor-pointer hover:bg-gray-100' : ''
-        }`}
-        style={{ 
-          backgroundColor: expanded ? `${COLORS.primaryGreen}10` : COLORS.lightBg,
-        }}
-      >
-        <div className="flex items-center gap-2">
-          {displayMode === 'accordion' && (
-            expanded 
-              ? <ChevronDown className="w-4 h-4" style={{ color: COLORS.primaryGreen }} />
-              : <ChevronRight className="w-4 h-4" style={{ color: COLORS.grayText }} />
-          )}
-          <span 
-            className="font-medium text-sm"
-            style={{ color: expanded ? COLORS.primaryGreen : COLORS.darkText }}
-          >
-            {category.name}
-          </span>
-        </div>
-        <span 
-          className="text-xs font-bold px-2 py-0.5 rounded-full"
-          style={{ 
-            backgroundColor: COLORS.primaryGreen,
-            color: COLORS.white,
-          }}
-        >
-          {category.totalCount}
-        </span>
-      </div>
+      <CategoryHeaderRow
+        categoryName={category.name}
+        totalCount={category.totalCount}
+        categoryColor={categoryColor}
+        isExpanded={expanded}
+        onToggle={handleToggle}
+        displayMode={displayMode}
+      />
       
       {/* Category Items */}
       {(displayMode === 'stacked' || expanded) && (
-        <div className="ml-2 mt-1">
+        <div>
           {category.items.map((item, idx) => (
-            <StationItem key={idx} name={item.name} count={item.count} />
+            <StationItemRow 
+              key={idx} 
+              itemName={item.name} 
+              categoryName={category.name}
+              count={item.count}
+              categoryColor={categoryColor}
+            />
           ))}
         </div>
       )}
@@ -209,6 +270,7 @@ const SingleStationPanel = ({ stationName, stationIcon, data, loading, error, di
           <StationCategory
             key={idx}
             category={category}
+            categoryIndex={idx}
             isExpanded={expandedCategories.has(idx)}
             onToggle={() => toggleCategory(idx)}
             displayMode={displayMode}
@@ -232,6 +294,9 @@ const StationPanel = ({ className = '' }) => {
     isLoading,
     setAllStationData 
   } = useStations();
+  
+  // Get categories from MenuContext for lookup
+  const { categories } = useMenu();
 
   // Station icons mapping
   const stationIcons = {
@@ -241,13 +306,27 @@ const StationPanel = ({ className = '' }) => {
     DEFAULT: '📋',
   };
 
+  // Build categories map for lookup
+  const categoriesMap = React.useMemo(() => {
+    const map = {};
+    if (categories && Array.isArray(categories)) {
+      categories.forEach(cat => {
+        if (cat.categoryId) {
+          map[cat.categoryId] = cat.name;
+          map[String(cat.categoryId)] = cat.name;
+        }
+      });
+    }
+    return map;
+  }, [categories]);
+
   // Refresh handler - re-fetch station data
   const handleRefresh = useCallback(async () => {
     if (!enabledStations?.length) return;
     
     try {
       const stationDataPromises = enabledStations.map(station => 
-        fetchStationData(station)
+        fetchStationData(station, categoriesMap)
       );
       const results = await Promise.all(stationDataPromises);
       
@@ -260,7 +339,7 @@ const StationPanel = ({ className = '' }) => {
     } catch (error) {
       console.error('[StationPanel] Error refreshing data:', error);
     }
-  }, [enabledStations, setAllStationData]);
+  }, [enabledStations, setAllStationData, categoriesMap]);
 
   // Don't render if disabled or no stations
   if (!stationViewEnabled || !enabledStations?.length) {

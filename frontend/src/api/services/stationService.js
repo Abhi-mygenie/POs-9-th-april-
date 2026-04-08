@@ -59,9 +59,10 @@ export const getStationViewConfig = () => {
  * Returns categories with item counts per station
  * 
  * @param {string} stationName - Station name (e.g., 'KDS', 'BAR')
+ * @param {Map|Object} categoriesMap - Map of category_id to category_name (optional)
  * @returns {Promise<Object>} - { categories: [...], totalItems: number }
  */
-export const fetchStationData = async (stationName = 'KDS') => {
+export const fetchStationData = async (stationName = 'KDS', categoriesMap = null) => {
   try {
     console.log(`[StationService] Fetching station data for ${stationName}...`);
     
@@ -85,7 +86,18 @@ export const fetchStationData = async (stationName = 'KDS') => {
         // Only count items for this station
         if (item.station === stationName || !item.station) {
           const foodName = item.food_details?.name || 'Unknown Item';
-          const categoryName = item.food_details?.category_name || 'Other';
+          const categoryId = item.food_details?.category_id;
+          
+          // Look up category name from categoriesMap, fallback to "Other"
+          let categoryName = 'Other';
+          if (categoriesMap && categoryId) {
+            if (categoriesMap instanceof Map) {
+              categoryName = categoriesMap.get(categoryId) || categoriesMap.get(String(categoryId)) || 'Other';
+            } else if (typeof categoriesMap === 'object') {
+              categoryName = categoriesMap[categoryId] || categoriesMap[String(categoryId)] || 'Other';
+            }
+          }
+          
           const quantity = item.quantity || 1;
           
           if (!categoryMap.has(categoryName)) {
