@@ -5,6 +5,7 @@ import { MenuProvider } from './MenuContext';
 import { TableProvider } from './TableContext';
 import { SettingsProvider } from './SettingsContext';
 import { OrderProvider } from './OrderContext';
+import { StationProvider } from './StationContext';
 
 // Combined App Providers - Wraps all context providers
 // Order matters: Auth → Socket → Rest (Socket depends on Auth)
@@ -17,7 +18,9 @@ const AppProviders = ({ children }) => {
             <TableProvider>
               <SettingsProvider>
                 <OrderProvider>
-                  {children}
+                  <StationProvider>
+                    {children}
+                  </StationProvider>
                 </OrderProvider>
               </SettingsProvider>
             </TableProvider>

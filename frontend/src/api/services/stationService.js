@@ -11,9 +11,30 @@ export const STATION_VIEW_STORAGE_KEY = 'mygenie_station_view_config';
  * Default station view config
  */
 export const DEFAULT_STATION_VIEW_CONFIG = {
-  enabled: false,
+  enabled: true,  // Enabled by default
   stations: [],
   displayMode: 'stacked', // 'stacked' | 'accordion'
+};
+
+/**
+ * Extract unique station names from products
+ * @param {Array} products - Products array with station field
+ * @returns {Array} - Unique station names
+ */
+export const extractUniqueStations = (products) => {
+  if (!Array.isArray(products)) return [];
+  
+  const stationSet = new Set();
+  products.forEach(product => {
+    if (product.station) {
+      stationSet.add(product.station);
+    }
+  });
+  
+  // Convert to array and sort
+  const stations = Array.from(stationSet).sort();
+  console.log('[StationService] Extracted unique stations:', stations);
+  return stations;
 };
 
 /**

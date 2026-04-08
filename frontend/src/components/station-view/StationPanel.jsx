@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, ChevronRight, RefreshCw, AlertCircle } from 'lucide-react';
-import { fetchStationData, getStationViewConfig } from '../../api/services/stationService';
+import { fetchStationData } from '../../api/services/stationService';
+import { useStations } from '../../contexts';
 
 // Color scheme matching the app
 const COLORS = {
@@ -220,13 +221,17 @@ const SingleStationPanel = ({ stationName, stationIcon, data, loading, error, di
 
 /**
  * Station Panel Container - Main component
- * Reads config from localStorage and renders station panels
+ * Reads data from StationContext (loaded at app start)
  */
 const StationPanel = ({ className = '' }) => {
-  const [config, setConfig] = useState(null);
-  const [stationData, setStationData] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { 
+    enabledStations, 
+    stationData, 
+    stationViewEnabled, 
+    displayMode,
+    isLoading,
+    setAllStationData 
+  } = useStations();
 
   // Station icons mapping
   const stationIcons = {
@@ -236,60 +241,29 @@ const StationPanel = ({ className = '' }) => {
     DEFAULT: '📋',
   };
 
-  // Load config from localStorage
-  useEffect(() => {
-    const loadConfig = () => {
-      const storedConfig = getStationViewConfig();
-      setConfig(storedConfig);
-    };
+  // Refresh handler - re-fetch station data
+  const handleRefresh = useCallback(async () => {
+    if (!enabledStations?.length) return;
     
-    loadConfig();
-    
-    // Listen for storage changes (in case settings change in another tab)
-    window.addEventListener('storage', loadConfig);
-    return () => window.removeEventListener('storage', loadConfig);
-  }, []);
-
-  // Fetch station data
-  const fetchData = useCallback(async () => {
-    if (!config?.enabled || !config?.stations?.length) {
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
     try {
-      // Fetch data for first station (API returns combined data)
-      const data = await fetchStationData(config.stations[0]);
+      const stationDataPromises = enabledStations.map(station => 
+        fetchStationData(station)
+      );
+      const results = await Promise.all(stationDataPromises);
       
-      // Apply same data to all selected stations
-      const newStationData = {};
-      config.stations.forEach(station => {
-        newStationData[station] = { ...data, stationName: station };
+      const newData = {};
+      enabledStations.forEach((station, idx) => {
+        newData[station] = results[idx];
       });
       
-      setStationData(newStationData);
-    } catch (err) {
-      console.error('[StationPanel] Error fetching data:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      setAllStationData(newData);
+    } catch (error) {
+      console.error('[StationPanel] Error refreshing data:', error);
     }
-  }, [config?.enabled, config?.stations]);
+  }, [enabledStations, setAllStationData]);
 
-  // Initial fetch
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Refresh handler
-  const handleRefresh = () => {
-    fetchData();
-  };
-
-  // Don't render if disabled or no stations selected
-  if (!config?.enabled || !config?.stations?.length) {
+  // Don't render if disabled or no stations
+  if (!stationViewEnabled || !enabledStations?.length) {
     return null;
   }
 
@@ -303,15 +277,15 @@ const StationPanel = ({ className = '' }) => {
       }}
       data-testid="station-panel"
     >
-      {config.stations.map((stationName) => (
+      {enabledStations.map((stationName) => (
         <SingleStationPanel
           key={stationName}
           stationName={stationName}
           stationIcon={stationIcons[stationName] || stationIcons.DEFAULT}
           data={stationData[stationName]}
-          loading={loading}
-          error={error}
-          displayMode={config.displayMode}
+          loading={isLoading}
+          error={null}
+          displayMode={displayMode}
           onRefresh={handleRefresh}
         />
       ))}

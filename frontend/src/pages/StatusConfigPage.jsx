@@ -4,6 +4,7 @@ import { ArrowLeft, Check, RotateCcw, Save, Eye, EyeOff } from "lucide-react";
 import Sidebar from "../components/layout/Sidebar";
 import { COLORS } from "../constants";
 import { useToast } from "../hooks/use-toast";
+import { useStations } from "../contexts";
 
 // LocalStorage key for enabled statuses
 const STORAGE_KEY = 'mygenie_enabled_statuses';
@@ -11,16 +12,17 @@ const STORAGE_KEY = 'mygenie_enabled_statuses';
 // LocalStorage key for station view config
 const STATION_VIEW_STORAGE_KEY = 'mygenie_station_view_config';
 
-// Available stations (can be fetched from API in future)
-const AVAILABLE_STATIONS = [
-  { id: 'KDS', label: 'KDS', description: 'Kitchen Display System', icon: '🍳' },
-  { id: 'BAR', label: 'BAR', description: 'Bar Station', icon: '🍺' },
-  { id: 'GRILL', label: 'Grill', description: 'Grill Station', icon: '🔥' },
-];
+// Station icons mapping
+const STATION_ICONS = {
+  KDS: '🍳',
+  BAR: '🍺',
+  GRILL: '🔥',
+  DEFAULT: '📋',
+};
 
 // Default station view config
 const DEFAULT_STATION_VIEW_CONFIG = {
-  enabled: false,
+  enabled: true,  // Enabled by default
   stations: [],
   displayMode: 'stacked', // 'stacked' | 'accordion'
 };
@@ -50,6 +52,17 @@ const StatusConfigPage = () => {
   const { toast } = useToast();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isSilentMode, setIsSilentMode] = useState(false);
+  
+  // Get available stations from context (loaded from products)
+  const { availableStations, saveConfig: saveStationConfig } = useStations();
+  
+  // Build station list with icons
+  const AVAILABLE_STATIONS = availableStations.map(station => ({
+    id: station,
+    label: station,
+    description: `${station} Station`,
+    icon: STATION_ICONS[station] || STATION_ICONS.DEFAULT,
+  }));
   
   // Enabled statuses state
   const [enabledStatuses, setEnabledStatuses] = useState(DEFAULT_ENABLED);
