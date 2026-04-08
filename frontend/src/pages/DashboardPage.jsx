@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { COLORS, USE_CHANNEL_LAYOUT, USE_STATUS_VIEW } from "../constants";
 import { Sidebar, Header } from "../components/layout";
@@ -106,6 +106,7 @@ const OrderListSection = ({ title, orders, orderType, matchingIds, snoozedOrders
 // Main Home/Dashboard Component
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoaded: restaurantLoaded, currencySymbol, cancellation, features } = useRestaurant();
   const { tables: apiTables, isLoaded: tablesLoaded } = useTables();
   const { user, hasPermission, permissions } = useAuth();
@@ -176,10 +177,46 @@ const DashboardPage = () => {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) { /* ignore */ }
     }
-    return ["pending", "preparing", "ready", "running", "served", "pendingPayment", "paid", "cancelled", "reserved"];
+    // Default: Only status 7, 1, 2, 5 (YTC, Preparing, Ready, Served)
+    return ["pending", "preparing", "ready", "served"];
   });
   
-  // Listen for localStorage changes (when config page saves)
+  // Read channel visibility config from localStorage
+  const [channelVisibility, setChannelVisibility] = useState(() => {
+    const stored = localStorage.getItem('mygenie_channel_visibility');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') return parsed;
+      } catch (e) { /* ignore */ }
+    }
+    return { enabled: true, channels: ['dineIn', 'takeAway', 'delivery', 'room'] };
+  });
+  
+  // Re-read localStorage on mount and when navigating back to dashboard
+  useEffect(() => {
+    const storedStatuses = localStorage.getItem('mygenie_enabled_statuses');
+    if (storedStatuses) {
+      try {
+        const parsed = JSON.parse(storedStatuses);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setEnabledStatuses(parsed);
+        }
+      } catch (e) { /* ignore */ }
+    }
+    
+    const storedChannels = localStorage.getItem('mygenie_channel_visibility');
+    if (storedChannels) {
+      try {
+        const parsed = JSON.parse(storedChannels);
+        if (parsed && typeof parsed === 'object') {
+          setChannelVisibility(parsed);
+        }
+      } catch (e) { /* ignore */ }
+    }
+  }, [location.pathname]);
+  
+  // Listen for localStorage changes (cross-tab: when config page saves in another tab)
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'mygenie_enabled_statuses') {
@@ -187,6 +224,14 @@ const DashboardPage = () => {
           const parsed = JSON.parse(e.newValue);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setEnabledStatuses(parsed);
+          }
+        } catch (err) { /* ignore */ }
+      }
+      if (e.key === 'mygenie_channel_visibility') {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed && typeof parsed === 'object') {
+            setChannelVisibility(parsed);
           }
         } catch (err) { /* ignore */ }
       }
@@ -1020,7 +1065,15 @@ const DashboardPage = () => {
                 channels={
                   dashboardView === 'status' && statusData
                     ? Object.values(statusData).filter(c => c.items?.length > 0 && !hiddenStatuses.includes(c.id))
-                    : Object.values(channelData).filter(c => c.enabled && !hiddenChannels.includes(c.id))
+                    : Object.values(channelData).filter(c => {
+                        // Must be enabled by API features
+                        if (!c.enabled) return false;
+                        // Must not be manually hidden via column hide action
+                        if (hiddenChannels.includes(c.id)) return false;
+                        // Apply channel visibility override from settings
+                        if (channelVisibility.enabled && !channelVisibility.channels.includes(c.id)) return false;
+                        return true;
+                      })
                 }
                 viewType={activeView === 'table' ? 'table' : 'order'}
                 onItemClick={handleTableClick}

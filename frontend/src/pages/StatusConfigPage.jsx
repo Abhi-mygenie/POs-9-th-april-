@@ -30,10 +30,10 @@ const DEFAULT_STATION_VIEW_CONFIG = {
   displayMode: 'stacked', // 'stacked' | 'accordion'
 };
 
-// Available channels
+// Available channels (IDs must match DashboardPage channelData keys)
 const ALL_CHANNELS = [
-  { id: 'dine_in', label: 'Dine-In', description: 'In-restaurant dining orders', icon: '🍽️' },
-  { id: 'takeaway', label: 'TakeAway', description: 'Takeaway/pickup orders', icon: '🥡' },
+  { id: 'dineIn', label: 'Dine-In', description: 'In-restaurant dining orders', icon: '🍽️' },
+  { id: 'takeAway', label: 'TakeAway', description: 'Takeaway/pickup orders', icon: '🥡' },
   { id: 'delivery', label: 'Delivery', description: 'Delivery orders', icon: '🚗' },
   { id: 'room', label: 'Room', description: 'Room service orders', icon: '🛏️' },
 ];
@@ -88,6 +88,9 @@ const StatusConfigPage = () => {
   // Station View config state
   const [stationViewConfig, setStationViewConfig] = useState(DEFAULT_STATION_VIEW_CONFIG);
 
+  // Channel visibility config state
+  const [channelConfig, setChannelConfig] = useState(DEFAULT_CHANNEL_CONFIG);
+
   // Load from localStorage on mount
   useEffect(() => {
     // Load status config
@@ -111,6 +114,17 @@ const StatusConfigPage = () => {
         setStationViewConfig({ ...DEFAULT_STATION_VIEW_CONFIG, ...parsed });
       } catch (e) {
         console.error('Failed to parse stored station view config:', e);
+      }
+    }
+
+    // Load channel visibility config
+    const storedChannelConfig = localStorage.getItem(CHANNEL_VISIBILITY_STORAGE_KEY);
+    if (storedChannelConfig) {
+      try {
+        const parsed = JSON.parse(storedChannelConfig);
+        setChannelConfig({ ...DEFAULT_CHANNEL_CONFIG, ...parsed });
+      } catch (e) {
+        console.error('Failed to parse stored channel visibility config:', e);
       }
     }
   }, []);
@@ -152,6 +166,7 @@ const StatusConfigPage = () => {
   const resetToDefault = () => {
     setEnabledStatuses(DEFAULT_ENABLED);
     setStationViewConfig(DEFAULT_STATION_VIEW_CONFIG);
+    setChannelConfig(DEFAULT_CHANNEL_CONFIG);
     setHasChanges(true);
   };
 
@@ -178,6 +193,38 @@ const StatusConfigPage = () => {
     setHasChanges(true);
   };
 
+  // Toggle channel visibility enabled
+  const toggleChannelEnabled = () => {
+    setChannelConfig(prev => ({
+      ...prev,
+      enabled: !prev.enabled,
+    }));
+    setHasChanges(true);
+  };
+
+  // Toggle a channel
+  const toggleChannel = (channelId) => {
+    setChannelConfig(prev => {
+      const isSelected = prev.channels.includes(channelId);
+      // Prevent disabling all channels
+      if (isSelected && prev.channels.length === 1) {
+        toast({
+          title: "Cannot disable",
+          description: "At least one channel must be enabled.",
+          variant: "destructive",
+        });
+        return prev;
+      }
+      return {
+        ...prev,
+        channels: isSelected
+          ? prev.channels.filter(id => id !== channelId)
+          : [...prev.channels, channelId],
+      };
+    });
+    setHasChanges(true);
+  };
+
   // Change display mode
   const setDisplayMode = (mode) => {
     setStationViewConfig(prev => ({
@@ -191,10 +238,11 @@ const StatusConfigPage = () => {
   const saveConfiguration = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(enabledStatuses));
     localStorage.setItem(STATION_VIEW_STORAGE_KEY, JSON.stringify(stationViewConfig));
+    localStorage.setItem(CHANNEL_VISIBILITY_STORAGE_KEY, JSON.stringify(channelConfig));
     setHasChanges(false);
     toast({
       title: "Configuration saved",
-      description: `${enabledStatuses.length} status(es) enabled. ${stationViewConfig.enabled ? `Station View ON (${stationViewConfig.stations.length} stations)` : 'Station View OFF'}`,
+      description: `${enabledStatuses.length} status(es) enabled. ${stationViewConfig.enabled ? `Station View ON (${stationViewConfig.stations.length} stations)` : 'Station View OFF'}. ${channelConfig.enabled ? `Channel Override ON (${channelConfig.channels.length} channels)` : 'Channel Override OFF'}`,
     });
   };
 
@@ -516,6 +564,94 @@ const StatusConfigPage = () => {
                         );
                       })}
                     </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* ============== CHANNEL VISIBILITY CONFIGURATION ============== */}
+            <div className="mt-10 pt-8" style={{ borderTop: `2px solid ${COLORS.borderGray}` }}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-semibold" style={{ color: COLORS.darkText }}>
+                    Channel Visibility
+                  </h2>
+                  <p className="text-sm mt-1" style={{ color: COLORS.grayText }}>
+                    Override API-provided channels to show/hide Dine-In, TakeAway, Delivery, Room on dashboard
+                  </p>
+                </div>
+                
+                {/* Enable/Disable Toggle */}
+                <button
+                  data-testid="channel-visibility-toggle"
+                  onClick={toggleChannelEnabled}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: channelConfig.enabled ? COLORS.primaryGreen : COLORS.borderGray,
+                    color: 'white',
+                  }}
+                >
+                  {channelConfig.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  <span className="text-sm font-medium">
+                    {channelConfig.enabled ? 'Override ON' : 'Override OFF'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Channel cards (only show when override is enabled) */}
+              {channelConfig.enabled && (
+                <>
+                  <div 
+                    className="p-4 rounded-lg mb-6"
+                    style={{ backgroundColor: `${COLORS.primaryOrange}10`, border: `1px solid ${COLORS.primaryOrange}30` }}
+                  >
+                    <p className="text-sm" style={{ color: COLORS.darkText }}>
+                      <strong>Channel Override</strong> lets you hide specific order channels from the dashboard, 
+                      regardless of what the API returns. Unchecked channels will be completely hidden.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {ALL_CHANNELS.map((channel) => {
+                      const isSelected = channelConfig.channels.includes(channel.id);
+                      return (
+                        <div
+                          key={channel.id}
+                          data-testid={`channel-card-${channel.id}`}
+                          onClick={() => toggleChannel(channel.id)}
+                          className="p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md"
+                          style={{
+                            backgroundColor: isSelected ? `${COLORS.primaryOrange}05` : COLORS.lightBg,
+                            borderColor: isSelected ? COLORS.primaryOrange : COLORS.borderGray,
+                          }}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl">{channel.icon}</span>
+                                <span 
+                                  className="font-semibold"
+                                  style={{ color: isSelected ? COLORS.primaryOrange : COLORS.darkText }}
+                                >
+                                  {channel.label}
+                                </span>
+                              </div>
+                              <p className="text-sm mt-1" style={{ color: COLORS.grayText }}>
+                                {channel.description}
+                              </p>
+                            </div>
+                            <div 
+                              className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                              style={{ 
+                                backgroundColor: isSelected ? COLORS.primaryOrange : COLORS.borderGray,
+                              }}
+                            >
+                              {isSelected && <Check className="w-4 h-4 text-white" />}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </>
               )}
