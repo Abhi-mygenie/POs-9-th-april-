@@ -34,7 +34,7 @@ export const getStationViewConfig = () => {
 };
 
 /**
- * Fetch aggregated station data (employee-menu API)
+ * Fetch aggregated station data (station-order-list API)
  * Returns categories with item counts per station
  * 
  * @param {string} stationName - Station name (e.g., 'KDS', 'BAR')
@@ -43,40 +43,61 @@ export const getStationViewConfig = () => {
 export const fetchStationData = async (stationName = 'KDS') => {
   try {
     console.log(`[StationService] Fetching station data for ${stationName}...`);
-    const response = await api.get('/api/v1/vendoremployee/employee-menu');
+    
+    // Use station-order-list API which returns orders by station
+    const formData = new FormData();
+    formData.append('role_name', stationName);
+    formData.append('def_order_status', '1'); // Preparing status
+    
+    const response = await api.post('/api/v1/vendoremployee/station-order-list', formData);
     
     console.log('[StationService] Raw API response:', response.data);
     
-    const data = response.data;
+    const orders = response.data?.orders || [];
     
-    // Parse the ordered_categories response
-    // Format: { ordered_categories: [{ category_name: "...", food_counts: ["Item:count", ...] }] }
-    const categories = (data.ordered_categories || []).map(cat => {
-      const items = (cat.food_counts || []).map(itemStr => {
-        // Parse "Item Name:count" format
-        const parts = itemStr.split(':');
-        const name = parts[0] || itemStr;
-        const count = parseInt(parts[1], 10) || 0;
-        return { name, count };
+    // Aggregate items by category from orders
+    const categoryMap = new Map();
+    
+    orders.forEach(order => {
+      const foodItems = order.order_details_food || [];
+      foodItems.forEach(item => {
+        // Only count items for this station
+        if (item.station === stationName || !item.station) {
+          const foodName = item.food_details?.name || 'Unknown Item';
+          const categoryName = item.food_details?.category_name || 'Other';
+          const quantity = item.quantity || 1;
+          
+          if (!categoryMap.has(categoryName)) {
+            categoryMap.set(categoryName, new Map());
+          }
+          
+          const itemsMap = categoryMap.get(categoryName);
+          const currentCount = itemsMap.get(foodName) || 0;
+          itemsMap.set(foodName, currentCount + quantity);
+        }
       });
-      
+    });
+    
+    // Convert to array format
+    const categories = Array.from(categoryMap.entries()).map(([catName, itemsMap]) => {
+      const items = Array.from(itemsMap.entries()).map(([name, count]) => ({ name, count }));
       const totalCount = items.reduce((sum, item) => sum + item.count, 0);
-      
       return {
-        name: cat.category_name,
+        name: catName,
         items,
         totalCount,
       };
-    }).filter(cat => cat.totalCount > 0); // Only show categories with items
+    }).filter(cat => cat.totalCount > 0);
     
     const totalItems = categories.reduce((sum, cat) => sum + cat.totalCount, 0);
     
-    console.log(`[StationService] Parsed ${categories.length} categories, ${totalItems} total items`);
+    console.log(`[StationService] Parsed ${categories.length} categories, ${totalItems} total items from ${orders.length} orders`);
     
     return {
       stationName,
       categories,
       totalItems,
+      orderCount: orders.length,
       fetchedAt: new Date().toISOString(),
     };
   } catch (error) {
@@ -102,14 +123,14 @@ export const fetchMultipleStationsData = async (stations = []) => {
     return {};
   }
   
-  // For now, employee-menu returns combined data, not per-station
-  // So we fetch once and use for all stations
-  const data = await fetchStationData(stations[0]);
+  // Fetch each station data in parallel
+  const results = await Promise.all(
+    stations.map(station => fetchStationData(station))
+  );
   
-  // Return same data for all stations (API doesn't filter by station yet)
   const result = {};
-  stations.forEach(station => {
-    result[station] = { ...data, stationName: station };
+  stations.forEach((station, idx) => {
+    result[station] = results[idx];
   });
   
   return result;
