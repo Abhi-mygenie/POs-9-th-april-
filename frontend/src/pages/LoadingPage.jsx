@@ -129,11 +129,12 @@ const LoadingPage = () => {
         const categoriesMap = {};
         categories.forEach(cat => {
           if (cat.categoryId) {
-            categoriesMap[cat.categoryId] = cat.name;
-            categoriesMap[String(cat.categoryId)] = cat.name;
+            categoriesMap[cat.categoryId] = cat.categoryName;  // Use categoryName, not name
+            categoriesMap[String(cat.categoryId)] = cat.categoryName;
           }
         });
         console.log('[LoadingPage] Categories map:', categoriesMap);
+        console.log('[LoadingPage] Sample categories:', categories.slice(0, 3));
         
         // Fetch data for each enabled station in parallel
         if (savedConfig.enabled !== false && stationsToLoad.length > 0) {
