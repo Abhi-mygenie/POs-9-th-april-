@@ -81,3 +81,5 @@ memory/test_credentials.md
 # Mobile development
 android-sdk/frontend_project/frontend/node_modules/.cache/default-development/0.pack
 frontend_project/frontend/node_modules/.cache/default-development/3.pack
+frontend/node_modules/.cache/default-development/0.pack
+frontend/node_modules/.cache/default-development/3.pack
