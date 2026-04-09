@@ -244,7 +244,7 @@ const DashboardPage = () => {
   const [activeStatuses, setActiveStatuses] = useState(["pending", "preparing", "ready", "running", "served", "pendingPayment", "paid", "cancelled", "reserved"]);
   const [tableFilter, setTableFilter] = useState(null); // null | 'confirm' | 'schedule'
   const [activeView, setActiveView] = useState("table");
-  const [dashboardView, setDashboardView] = useState("channel"); // 'channel' | 'status' - for dual-view toggle
+  const [dashboardView, setDashboardView] = useState("status"); // 'channel' | 'status' - for dual-view toggle (default: status)
   const [hiddenChannels, setHiddenChannels] = useState([]); // Hidden channel IDs (dineIn, delivery, etc.)
   const [hiddenStatuses, setHiddenStatuses] = useState([]); // Hidden status IDs (preparing, ready, etc.)
   const [orderEntryTable, setOrderEntryTable] = useState(null);
@@ -252,7 +252,7 @@ const DashboardPage = () => {
   const [initialShowPayment, setInitialShowPayment] = useState(false);
   const [initialTransferItem, setInitialTransferItem] = useState(null);
   const [cartsByTable, setCartsByTable] = useState({});
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false); // Default collapsed on login
   const [searchQuery, setSearchQuery] = useState("");
   const [isSilentMode, setIsSilentMode] = useState(false);
   const [snoozedOrders, setSnoozedOrders] = useState(new Set());

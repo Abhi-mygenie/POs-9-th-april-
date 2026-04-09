@@ -20,8 +20,8 @@ export const StationProvider = ({ children }) => {
   // Station data (fetched from station-order-list API)
   const [stationData, setStationData] = useState({});
   
-  // Station view enabled flag
-  const [stationViewEnabled, setStationViewEnabled] = useState(true);
+  // Station view enabled flag (default OFF on login)
+  const [stationViewEnabled, setStationViewEnabled] = useState(false);
   
   // Display mode: 'stacked' or 'accordion'
   const [displayMode, setDisplayMode] = useState('stacked');
@@ -50,9 +50,9 @@ export const StationProvider = ({ children }) => {
           setEnabledStations(stations);
         }
       } else {
-        // No saved config - enable all by default
+        // No saved config - station view OFF by default
         setEnabledStations(stations);
-        setStationViewEnabled(true);
+        setStationViewEnabled(false);
         setDisplayMode('stacked');
       }
     } catch (e) {
