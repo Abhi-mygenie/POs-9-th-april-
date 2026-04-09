@@ -81,6 +81,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showPaymentPanel, setShowPaymentPanel] = useState(initialShowPayment);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [walkInTableName, setWalkInTableName] = useState(""); // For Walk-In dynamic table name
   
   // API financials for placed orders (amount, subtotal from server)
   const [orderFinancials, setOrderFinancials] = useState({
@@ -966,6 +967,9 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                 canBill={canBill}
                 canPrintBill={canPrintBill}
                 isItemCancelAllowed={isItemCancelAllowed}
+                orderType={orderType}
+                walkInTableName={walkInTableName}
+                onWalkInTableNameChange={setWalkInTableName}
               />
             </>
           )}

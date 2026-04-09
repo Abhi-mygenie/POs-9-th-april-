@@ -883,10 +883,9 @@ const DashboardPage = () => {
   };
 
   const handleOrderTypeChange = (newType) => {
-    if (newType === "walkIn" && !orderEntryTable) {
-      const firstAvailable = allTablesList.find(t => t.status === "available");
-      if (firstAvailable) setOrderEntryTable(firstAvailable);
-    } else if (newType !== "walkIn") {
+    // Walk-In orders don't use physical tables - they create dynamic tables
+    // TakeAway and Delivery also don't need physical tables
+    if (newType === "walkIn" || newType === "takeAway" || newType === "delivery") {
       setOrderEntryTable(null);
     }
     setOrderEntryType(newType);

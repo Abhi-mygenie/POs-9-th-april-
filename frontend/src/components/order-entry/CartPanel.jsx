@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Utensils, XCircle, Pencil, CookingPot, UtensilsCrossed, Check, User, Phone, Trash2, ArrowLeftRight, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { Utensils, XCircle, Pencil, CookingPot, UtensilsCrossed, Check, User, Phone, Trash2, ArrowLeftRight, RefreshCw, ChevronDown, ChevronUp, LayoutGrid } from "lucide-react";
 import { COLORS } from "../../constants";
 import { searchCustomers } from "../../api/services/customerService";
 import RePrintButton from "./RePrintButton";
@@ -261,6 +261,9 @@ const CartPanel = ({
   canBill = true,
   canPrintBill = true,
   isItemCancelAllowed,
+  orderType,
+  walkInTableName = "",
+  onWalkInTableNameChange,
 }) => {
   const newItemCount = cartItems.filter(i => !i.placed).length;
   const [customerName, setCustomerName] = useState(customer?.name || "");
@@ -393,6 +396,35 @@ const CartPanel = ({
 
   return (
     <>
+      {/* Walk-In Table Name Field */}
+      {orderType === "walkIn" && (
+        <div 
+          className="px-3 py-3"
+          style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
+        >
+          <div className="relative">
+            <LayoutGrid className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 z-10" style={{ color: COLORS.primaryOrange }} />
+            <input
+              type="text"
+              placeholder="Table name (e.g., Patio 1, Garden)"
+              value={walkInTableName}
+              onChange={(e) => onWalkInTableNameChange?.(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm border-2 focus:outline-none focus:ring-2"
+              style={{ 
+                borderColor: COLORS.primaryOrange,
+                fontSize: "13px",
+                backgroundColor: "white",
+                boxShadow: "0 2px 4px rgba(249, 115, 22, 0.15)"
+              }}
+              data-testid="walkin-table-name"
+            />
+          </div>
+          <p className="text-xs mt-1.5" style={{ color: COLORS.grayText }}>
+            Optional: If empty, customer name will be used as table label
+          </p>
+        </div>
+      )}
+
       {/* Quick Customer Fields */}
       <div 
         className="px-3 py-4 grid grid-cols-2 gap-3"
