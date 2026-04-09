@@ -412,14 +412,6 @@ const LoadingPage = () => {
           />
         </div>
 
-        {/* Title */}
-        <h1
-          className="text-center text-xl font-semibold mb-2"
-          style={{ color: COLORS.darkText }}
-        >
-          Setting up your POS...
-        </h1>
-
         <p
           className="text-center text-sm mb-8"
           style={{ color: COLORS.grayText }}

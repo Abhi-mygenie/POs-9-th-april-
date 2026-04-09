@@ -102,12 +102,20 @@ const LoginPage = () => {
         </div>
 
         {/* Title */}
-        <h1 
-          className="text-center text-xl font-semibold mb-8"
-          style={{ color: COLORS.darkText }}
-        >
-          Restaurant POS System
-        </h1>
+        <div className="text-center mb-8">
+          <h1 
+            className="text-xl font-semibold"
+            style={{ color: COLORS.primaryOrange }}
+          >
+            Streamlined Hospitality.
+          </h1>
+          <h2 
+            className="text-xl font-semibold"
+            style={{ color: COLORS.darkText }}
+          >
+            Exceptional Experience.
+          </h2>
+        </div>
 
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-5">
@@ -221,32 +229,12 @@ const LoginPage = () => {
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="flex items-center gap-4 my-6">
-          <div className="flex-1 h-px" style={{ backgroundColor: COLORS.borderGray }} />
-          <span className="text-sm" style={{ color: COLORS.grayText }}>OR</span>
-          <div className="flex-1 h-px" style={{ backgroundColor: COLORS.borderGray }} />
-        </div>
-
-        {/* Request Demo Button */}
-        <button
-          onClick={handleRequestDemo}
-          className="w-full py-3 rounded-lg font-semibold border transition-all hover:bg-gray-50"
-          style={{ 
-            borderColor: COLORS.borderGray, 
-            color: COLORS.darkText 
-          }}
-          data-testid="request-demo"
-        >
-          Request for Demo
-        </button>
-
         {/* Footer */}
         <p 
           className="text-center text-xs mt-8"
           style={{ color: COLORS.grayText }}
         >
-          © 2026 MyGenie Restaurant POS. All rights reserved.
+          © Mygenie 2025. HOSIGENIE HOSPITALITY SERVICES PRIVATE LIMITED. All Rights Reserved.
         </p>
       </div>
     </div>

@@ -220,10 +220,11 @@ const Header = ({
                         setActiveChannels([...activeChannels, channel.id]);
                       }
                     }}
-                    className="flex items-center gap-1.5 py-2 px-2.5 rounded-md text-sm font-medium transition-colors"
+                    className="flex items-center gap-1.5 py-2 px-2.5 rounded-lg text-sm font-medium transition-colors"
                     style={{
-                      backgroundColor: isActive ? "#FFF3E8" : "transparent",
-                      color: isActive ? COLORS.primaryOrange : COLORS.grayText,
+                      backgroundColor: "#FFF3E8",
+                      color: COLORS.primaryOrange,
+                      border: isActive ? `1px solid ${COLORS.primaryOrange}` : "1px solid transparent",
                     }}
                     title={channel.fullLabel}
                   >
@@ -241,10 +242,11 @@ const Header = ({
                     key={status.id}
                     data-testid={`filter-status-${status.id}`}
                     onClick={() => handleStatusToggle(status.id)}
-                    className="py-2 px-2.5 rounded-md text-sm font-medium transition-colors"
+                    className="py-2 px-2.5 rounded-lg text-sm font-medium transition-colors"
                     style={{
-                      backgroundColor: isActive ? "#FFF3E8" : "transparent",
-                      color: isActive ? COLORS.primaryOrange : COLORS.grayText,
+                      backgroundColor: "#FFF3E8",
+                      color: COLORS.primaryOrange,
+                      border: isActive ? `1px solid ${COLORS.primaryOrange}` : "1px solid transparent",
                     }}
                   >
                     {status.label}
@@ -256,12 +258,12 @@ const Header = ({
         </div>
 
         {/* Center Section - Search (flex-1 to take available space) */}
-        <div className="flex-1 flex justify-center px-4">
+        <div className="flex-1 flex justify-end px-4">
           <div className="relative">
             <div 
               ref={searchRef}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all ${
-                isSearchFocused ? "w-72" : "w-56"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                isSearchFocused ? "w-64" : "w-48"
               }`}
               style={{ 
                 backgroundColor: COLORS.sectionBg,
