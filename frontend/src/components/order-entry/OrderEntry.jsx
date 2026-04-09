@@ -414,9 +414,14 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
         }
       } else {
         // Scenario 2 / New Order — Place Order: await API + wait for socket engage before redirect
+        // For Walk-In orders: use walkInTableName as customer name if provided (for table label)
+        const effectiveCustomer = orderType === 'walkIn' && walkInTableName
+          ? { ...customer, name: walkInTableName }
+          : customer;
+        
         const payload = orderToAPI.placeOrder(
           { ...table, tableId: table?.tableId },
-          cartItems, customer, orderType,
+          cartItems, effectiveCustomer, orderType,
           { restaurantId: restaurant?.id, orderNotes, total, printAllKOT }
         );
         console.log('[PlaceOrder] payload:', JSON.stringify(payload, null, 2));
