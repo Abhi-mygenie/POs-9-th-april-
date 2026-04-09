@@ -1,7 +1,7 @@
 # MyGenie POS Frontend - Complete Architecture Document
 
-**Version:** 3.1 (Header UX Labeled Dropdowns)
-**Last Updated:** April 8, 2026  
+**Version:** 3.2 (Layout Settings + Header UX Refinements)
+**Last Updated:** April 9, 2026  
 **Audience:** New developers, maintainers, and technical leads
 
 ---
@@ -950,6 +950,38 @@ When a column is hidden:
 // Value: JSON array of status IDs
 ["pending", "preparing", "ready", "running", "served", "pendingPayment", "paid", "cancelled", "reserved"]
 ```
+
+### 9.6.2 All localStorage Keys (Visibility Settings)
+
+| Key | Purpose | Default Value |
+|-----|---------|---------------|
+| `mygenie_enabled_statuses` | Enabled status IDs | `["pending", "preparing", "ready", "served"]` |
+| `mygenie_station_view_config` | Station View settings | `{ enabled: true, stations: [], displayMode: 'stacked' }` |
+| `mygenie_channel_visibility` | Channel override settings | `{ enabled: true, channels: ['dineIn', 'takeAway', 'delivery', 'room'] }` |
+| `mygenie_layout_table_view` | Default columns (Table View) | `{ dineIn: 2, takeAway: 2, delivery: 2, room: 2 }` |
+| `mygenie_layout_order_view` | Default columns (Order View) | `{ dineIn: 1, takeAway: 1, delivery: 1, room: 1 }` |
+
+### 9.6.3 Column Layout Behavior
+
+```
+Visibility Settings Page
+        │
+        ▼
+   localStorage (mygenie_layout_table_view / mygenie_layout_order_view)
+        │
+        ▼
+ChannelColumnsLayout.jsx
+        │
+        ▼
+  getLayoutFromStorage(viewType)
+    reads from localStorage
+    falls back to hardcoded defaults
+```
+
+**Key Points:**
+- Arrow buttons on dashboard = session only (not persisted)
+- Switching views reloads from localStorage
+- Smart measurement logic removed (was auto-calculating based on screen width)
 
 ---
 

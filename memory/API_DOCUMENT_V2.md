@@ -1117,5 +1117,18 @@ Post-Ready (item ready or served):
 - **Context:** `RestaurantContext` → `cancellation` (via `useRestaurant()`)
 - **Auth:** `AuthContext` → `permissions` array → `hasPermission(string)` check
 
+### Auto Print Settings (Added April 9, 2026)
+Profile API provides auto-print settings, now mapped in `profileTransform.js`:
+
+| API Field | Frontend Field | Description |
+|-----------|----------------|-------------|
+| `aggregator_auto_kot` | `settings.autoKot` | Auto-print KOT for orders |
+| `billing_auto_bill_print` | `settings.autoBill` | Auto-print Bill for orders |
+
+**Usage:** 
+- Exposed via `RestaurantContext` → `settings`
+- Used in `RePrintButton.jsx` to default checkbox states
+- Actual print binding to be implemented later
+
 ### Full Field Audit
 See `/app/memory/PROFILE_API_FIELD_AUDIT.md` for complete 240-field mapping with MAPPED/MISSING status.

@@ -1,30 +1,80 @@
 # Changelog
 
-## Apr 9, 2026 — Session 5 (Header UX Refinements)
+## Apr 9, 2026 — Session 6 (Header UX, Layout Settings, Auto Print)
 
-### Filter Pills Toned Down — COMPLETE ✅
-- **Problem**: All status filter pills were solid orange (#F27329) — too prominent and overwhelming
-- **Solution**: Changed to ghost/outline style for inactive filters:
-  - Inactive: Light gray border, dark text, transparent background
-  - Active: Solid orange background, white text (unchanged)
+### Filter Pills — Light Tint Style (Option A) — COMPLETE ✅
+- **Problem**: Even with ghost style, all-selected filters were still too orange
+- **Solution**: Changed to light tint style:
+  - Active: Light orange background (`#FFF3E8`) + orange text
+  - Inactive: Transparent + gray text
 - **Files Modified**: `Header.jsx`
 
-### Card Header Colors Removed — COMPLETE ✅
-- **Problem**: TableCard and OrderCard had colored backgrounds indicating channel type:
-  - Yellow for Dine-In
-  - Green for TakeAway
-  - Pink for Delivery
-  - Blue for Room
-- **Solution**: Changed all card headers to neutral light gray (#F5F5F5) regardless of order type
+### Action Buttons — Light Tint Style — COMPLETE ✅
+- **Problem**: Ready/Serve buttons were solid orange/green, too prominent
+- **Solution**: Changed to light tint style matching filters:
+  - Ready: Light orange tint (`#FFF3E8` bg + orange text)
+  - Serve: Light green tint (`#E8F5E9` bg + green text)  
+  - Bill: Stays solid green (primary CTA)
+  - Cancel X: Changed from red to gray (de-emphasized)
 - **Files Modified**: `TableCard.jsx`, `OrderCard.jsx`
 
-### Add Button Prominence — COMPLETE ✅
-- **Result**: With filter pills toned down, the `[+ Add]` button now naturally stands out as the primary CTA
-- **No code changes needed** — automatically achieved via filter pill changes
+### MG Logo Removed from Order Cards — COMPLETE ✅
+- **Problem**: MG logo on every order card was unnecessary visual noise
+- **Solution**: Removed MG logo from all own orders in Order View
+  - Aggregator logos (S/Z) still show for Swiggy/Zomato orders
+- **Files Modified**: `OrderCard.jsx`
+
+### Price Color in Order View — COMPLETE ✅
+- Changed price from orange to gray to match Table View style
+- **Files Modified**: `OrderCard.jsx`
+
+### Column Header Count Badge — COMPLETE ✅
+- Changed format from `activeCount/totalCount` to just `activeCount`
+- Changed color from orange to gray
+- **Files Modified**: `ChannelColumn.jsx`
+
+### Dine-In Header Wrap Fix — COMPLETE ✅
+- Added `whitespace-nowrap` to prevent "Dine-In" breaking into two lines
+- **Files Modified**: `ChannelColumn.jsx`
+
+### Hide Link Removed from Column Headers — COMPLETE ✅
+- Removed inline "Hide" button (visibility now controlled via Settings page only)
+- Removed "Show Hidden" button from Header
+- **Files Modified**: `ChannelColumn.jsx`, `Header.jsx`
+
+### Max 6 Filters in Header — COMPLETE ✅
+- Limited status/channel filters to max 6 in header
+- **Files Modified**: `Header.jsx`
+
+### Search Centered in Header — COMPLETE ✅
+- New layout: `[Logo][Filters] — [Search (center)] — [Add][Table▾][Channel▾]`
+- Search now has dedicated flex-1 centered section
+- **Files Modified**: `Header.jsx`
+
+### Auto Print Checkboxes (KOT/Bill) — COMPLETE ✅
+- Added KOT and Bill checkboxes next to Re-Print button in Order Entry
+- Default state loaded from Settings API (`autoKot`, `autoBill`)
+- User can toggle per order
+- Actual print functionality to be bound later
+- **Files Modified**: `RePrintButton.jsx`, `profileTransform.js`, `RestaurantContext.jsx`
+
+### Default Column Layout Settings — COMPLETE ✅
+- **New Feature**: Configure default columns per channel for Table View and Order View
+- **Location**: Visibility Settings page → "Default Column Layout" section
+- **Controls**: +/- buttons for each channel (Dine-In, TakeAway, Delivery, Room)
+- **Storage**: 
+  - `mygenie_layout_table_view` = `{ dineIn: 2, takeAway: 2, delivery: 2, room: 2 }`
+  - `mygenie_layout_order_view` = `{ dineIn: 1, takeAway: 1, delivery: 1, room: 1 }`
+- **Behavior**:
+  - Removed smart measurement logic (was auto-calculating based on screen width)
+  - Now reads from localStorage (or hardcoded defaults)
+  - Arrow buttons on dashboard = session only (not persisted)
+  - Switching views loads from localStorage
+- **Files Modified**: `StatusConfigPage.jsx`, `ChannelColumnsLayout.jsx`
 
 ---
 
-## Apr 8, 2026 — Session 4 (Header UX — Option A Labeled Dropdowns)
+## Apr 9, 2026 — Session 5 (Header UX Refinements)
 
 ### Header UX Improvement — COMPLETE ✅
 - **Problem**: Too many clustered orange icons on the right side of the header. Two toggle groups (Grid/List and Columns/BarChart) looked similar and had no labels, causing confusion.

@@ -25,32 +25,47 @@ Frontend .env:
 2. Arrow buttons `<` / `>` on each channel header to decrease/increase column count independently
 3. No max limit on column increase; min is 1 column (if channel has orders)
 4. Channels with 0 orders auto-hide (0 columns)
-5. Smart defaults: on login, columns fill available screen width based on how many channels are visible
-6. Default columns differ by view: table view = 2, order view = 1 (static fallback)
-7. Layout state resets on every login/page mount (no localStorage persistence)
+5. **Default layout from Settings**: Columns per channel configured in Visibility Settings page, saved to localStorage
+6. Default columns differ by view: table view = 2, order view = 1 (if nothing in localStorage)
+7. **Arrow changes are session-only** — switching views reloads from localStorage
 8. Horizontal scroll when user manually expands beyond viewport via arrows
 9. Permissions-based UI: Cancel, Bill, Print strictly from AuthContext permissions array
 
 ## Key Architectural Decisions
 - **Permissions:** UI is a "dumb" display layer. No frontend logic for time windows or restaurant settings.
-- **Channel columns:** `maxColumns` controlled per-channel via `useState` (not localStorage). `actualColumns = min(orderCount, maxColumns)`.
+- **Channel columns:** `maxColumns` controlled per-channel via `useState`, initialized from localStorage. `actualColumns = min(orderCount, maxColumns)`.
 - **Feature flag:** `USE_CHANNEL_LAYOUT = true` in `/app/frontend/src/constants/featureFlags.js` for safe rollout.
-- **Smart defaults:** On mount, measure container width, count visible channels, calculate `floor(availablePerChannel / cardUnit)` as default maxColumns.
+- **Layout persistence:** Saved in localStorage via Visibility Settings page. Arrow buttons are session-only.
 
-## Current Status (Apr 8, 2026)
+## Current Status (Apr 9, 2026)
 
 ### What's Working
 - Phase A (Arrow Functionality) — arrows work independently per channel, tested 100% pass rate
-- Smart default calculation — measures container, distributes width among visible channels
-- View-type aware defaults — table view starts at 2 cols, order view at 1 col (static fallback)
+- View-type aware defaults — loaded from localStorage (Settings page)
 - Feature flag toggle between old area-based and new channel-based layout
 - **Dashboard Dual-View System — FULLY IMPLEMENTED:**
   - Toggle between "By Channel" and "By Status" views
   - Filter swap: Channel View → 9 Status filters, Status View → 4 Channel filters
-  - Hide column → Also hides corresponding filter (linked across views)
-  - Restore hidden button in Header
+  - Max 6 filters shown in header
   - All 9 status filters working (YTC, Preparing, Ready, Running, Served, Pending Pay, Paid, Cancelled, Reserved)
 - **Food Transfer — FIXED:** onFoodTransfer prop now threaded through entire component chain
+- **Visibility Settings Page — FULLY IMPLEMENTED:**
+  - Status Configuration: Enable/disable statuses
+  - Channel Visibility: Override API-provided channels
+  - Station View Configuration: KDS/BAR panels
+  - **Default Column Layout**: Configure columns per channel for Table/Order views
+- **Header UX Refinements — COMPLETE:**
+  - Light tint filter pills (less visually heavy)
+  - Centered search with dedicated space
+  - Labeled dropdowns for view toggles
+- **Card UX Refinements — COMPLETE:**
+  - Neutral gray card headers (no colored backgrounds)
+  - Light tint Ready/Serve buttons
+  - Gray Cancel X button
+  - MG logo removed from Order View (own orders)
+- **Auto Print Checkboxes — COMPLETE:**
+  - KOT and Bill checkboxes in Order Entry
+  - Default state from Settings API
 
 ### Known Issues (Active)
 1. **`enabledChannels` ReferenceError** — intermittent crash "Cannot access 'enabledChannels' before initialization". Root cause: useEffect ordering or cached JS bundle.

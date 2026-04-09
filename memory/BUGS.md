@@ -1,6 +1,6 @@
 # POS Frontend - Bug Tracker & Audit Document
 
-**Last Updated:** April 7, 2026 (v2 — Permission & Cancellation context added)
+**Last Updated:** April 9, 2026 (v3 — Session 6 UX fixes documented)
 
 ---
 

@@ -2,6 +2,49 @@
 
 ## Completed ✅
 
+### Session 6 — Header UX & Layout Settings (April 9, 2026) ✅
+
+#### Filter Pills Light Tint Style ✅
+- Changed from solid orange to light tint (`#FFF3E8` bg + orange text)
+- Inactive filters: transparent + gray text
+
+#### Action Buttons Light Tint Style ✅
+- Ready: Light orange tint
+- Serve: Light green tint
+- Bill: Stays solid green (primary CTA)
+- Cancel X: Changed from red to gray
+
+#### MG Logo Removed from Order Cards ✅
+- Removed MG logo from all own orders in Order View
+- Aggregator logos (S/Z) still show
+
+#### Column Header UX ✅
+- Count badge: Changed from `X/Y` to just `X`, color from orange to gray
+- Added `whitespace-nowrap` to fix "Dine-In" wrapping
+
+#### Hide Link Removed ✅
+- Removed inline "Hide" from column headers
+- Visibility now controlled only via Settings page
+
+#### Header Layout ✅
+- Max 6 filters shown in header
+- Search centered with dedicated space
+- Layout: `[Logo][Filters] — [Search] — [Add][Table▾][Channel▾]`
+
+#### Auto Print Checkboxes ✅
+- KOT and Bill checkboxes in Order Entry (next to Re-Print)
+- Default state from Settings API (`autoKot`, `autoBill`)
+- Actual print to be bound later
+
+#### Default Column Layout Settings ✅
+- New section in Visibility Settings page
+- Configure columns per channel for Table View and Order View
+- Saved to localStorage
+- Removed smart measurement logic
+- Arrow buttons on dashboard = session only
+
+---
+
 ### 1. Wire `onFoodTransfer` in Channel Layout (GAP 2) ✅
 - **Status:** DONE (April 2026)
 - **What:** Food transfer icon was not working in channel layout
