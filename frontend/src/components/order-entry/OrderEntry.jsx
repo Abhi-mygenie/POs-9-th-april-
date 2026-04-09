@@ -590,8 +590,8 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
               })}
             </div>
 
-            {/* Divider */}
-            <div className="h-6 w-px" style={{ backgroundColor: COLORS.borderGray }} />
+            {/* Spacer - push action icons to the right */}
+            <div className="flex-1" />
 
             {/* Action Icons: Transfer, Merge, Notes, Customer, Cancel */}
             <div className="flex items-center gap-1">
