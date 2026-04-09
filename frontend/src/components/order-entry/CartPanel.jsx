@@ -3,6 +3,7 @@ import { Utensils, XCircle, Pencil, CookingPot, UtensilsCrossed, Check, User, Ph
 import { COLORS } from "../../constants";
 import { searchCustomers } from "../../api/services/customerService";
 import RePrintButton from "./RePrintButton";
+import { useSettings } from "../../contexts/SettingsContext";
 
 // Get icon, color, and bg for food item status
 const getItemStatusIcon = (status) => {
@@ -265,6 +266,7 @@ const CartPanel = ({
   walkInTableName = "",
   onWalkInTableNameChange,
 }) => {
+  const { enableDynamicTables } = useSettings();
   const newItemCount = cartItems.filter(i => !i.placed).length;
   const [customerName, setCustomerName] = useState(customer?.name || "");
   const [customerPhone, setCustomerPhone] = useState(customer?.phone || "");
@@ -397,7 +399,8 @@ const CartPanel = ({
   return (
     <>
       {/* Walk-In Table Name Field */}
-      {orderType === "walkIn" && (
+      {/* Dynamic Table Name - Only shown for walk-in orders AND when enabled in settings */}
+      {orderType === "walkIn" && enableDynamicTables && (
         <div 
           className="px-3 py-3"
           style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}

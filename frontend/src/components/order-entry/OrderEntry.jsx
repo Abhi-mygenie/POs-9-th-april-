@@ -579,38 +579,40 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
 
         {/* MIDDLE PANEL - Menu Items */}
         <div className="flex-1 flex flex-col overflow-hidden" style={{ borderRight: `1px solid ${COLORS.borderGray}` }}>
-          {/* Header Row: Filters + Action Icons */}
-          <div className="px-4 py-4 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
-            {/* Primary Dietary Filters */}
-            <div className="flex items-center gap-2">
-              {[
-                { key: "veg", label: "Veg" },
-                { key: "nonveg", label: "Non-Veg" },
-                { key: "egg", label: "Egg" }
-              ].map(filter => {
-                const isActive = primaryFilter === filter.key;
-                return (
-                  <button
-                    key={filter.key}
-                    data-testid={`filter-${filter.key}`}
-                    onClick={() => togglePrimaryFilter(filter.key)}
-                    className="px-4 py-2 rounded-full text-xs font-medium transition-colors"
-                    style={{
-                      backgroundColor: isActive ? COLORS.primaryGreen : "transparent",
-                      color: isActive ? "white" : COLORS.darkText,
-                      border: `1px solid ${isActive ? COLORS.primaryGreen : COLORS.borderGray}`,
-                    }}
-                  >
-                    {filter.label}
-                  </button>
-                );
-              })}
+          {/* Single Compact Header Row: Search + Add Custom + Action Icons */}
+          <div className="px-4 py-3 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.primaryOrange }} />
+              <input
+                data-testid="menu-search-input"
+                type="text"
+                placeholder="Search items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2"
+                style={{ 
+                  backgroundColor: "white", 
+                  color: COLORS.darkText,
+                  borderColor: COLORS.primaryOrange,
+                  boxShadow: "0 2px 4px rgba(249, 115, 22, 0.15)",
+                  fontSize: "13px"
+                }}
+              />
             </div>
+            
+            {/* Add Custom Item */}
+            <button
+              onClick={() => setShowCustomItemModal(true)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+              style={{ border: `1px solid ${COLORS.borderGray}` }}
+              title="Add Custom Item"
+              data-testid="add-custom-item-btn"
+            >
+              <Plus className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
+            </button>
 
-            {/* Spacer - push action icons to the right */}
-            <div className="flex-1" />
-
-            {/* Action Icons: Transfer, Merge, Notes, Customer, Cancel */}
+            {/* Action Icons: Shift, Merge, Notes, Customer */}
             <div className="flex items-center gap-1">
               {/* Shift/Transfer Table */}
               {canShiftTable && (
@@ -663,39 +665,6 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Search Row with Add Custom Item */}
-          <div className="px-4 py-4 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.primaryOrange }} />
-              <input
-                data-testid="menu-search-input"
-                type="text"
-                placeholder="Search items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border-2 focus:outline-none focus:ring-2"
-                style={{ 
-                  backgroundColor: "white", 
-                  color: COLORS.darkText,
-                  borderColor: COLORS.primaryOrange,
-                  boxShadow: "0 2px 4px rgba(249, 115, 22, 0.15)",
-                  fontSize: "13px"
-                }}
-              />
-            </div>
-            
-            {/* Add Custom Item */}
-            <button
-              onClick={() => setShowCustomItemModal(true)}
-              className="p-2.5 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
-              style={{ border: `1px solid ${COLORS.borderGray}` }}
-              title="Add Custom Item"
-              data-testid="add-custom-item-btn"
-            >
-              <Plus className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
-            </button>
           </div>
 
           {/* Menu Items - Pill Layout */}
