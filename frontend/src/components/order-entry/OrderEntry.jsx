@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { ChevronLeft, ChevronDown, Search, UserPlus, StickyNote, Plus, Truck, ShoppingBag, UtensilsCrossed, Trash2, Scissors } from "lucide-react";
+import { ChevronLeft, ChevronDown, Search, UserPlus, StickyNote, Plus, Truck, ShoppingBag, UtensilsCrossed, Scissors, ArrowRightLeft, GitMerge, X } from "lucide-react";
 import { COLORS } from "../../constants";
 import { useMenu, useOrders, useSettings, useRestaurant, useAuth, useTables } from "../../contexts";
 import { useToast } from "../../hooks/use-toast";
@@ -556,31 +556,22 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
         <CategoryPanel
           activeCategory={activeCategory}
           onCategoryChange={(id) => setActiveCategory(id)}
-          onShiftTable={() => setShowShiftModal(true)}
-          onMergeTable={() => setShowMergeModal(true)}
           onBack={onClose}
           categories={categories}
-          canShiftTable={canShiftTable}
-          canMergeOrder={canMergeOrder}
         />
 
         {/* MIDDLE PANEL - Menu Items */}
         <div className="flex-1 flex flex-col overflow-hidden" style={{ borderRight: `1px solid ${COLORS.borderGray}` }}>
-          {/* Search + Dietary Filters (Header Row) */}
+          {/* Header Row: Back + Filters + Action Icons */}
           <div className="px-4 py-3 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
-            {/* Compact Search */}
-            <div className="relative w-48 flex-shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.grayText }} />
-              <input
-                data-testid="menu-search-input"
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-lg text-sm"
-                style={{ backgroundColor: COLORS.sectionBg, color: COLORS.darkText }}
-              />
-            </div>
+            {/* Back Button */}
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+              data-testid="menu-back-btn"
+            >
+              <ChevronLeft className="w-6 h-6" style={{ color: COLORS.primaryOrange }} />
+            </button>
 
             {/* Divider */}
             <div className="h-6 w-px" style={{ backgroundColor: COLORS.borderGray }} />
@@ -598,7 +589,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                     key={filter.key}
                     data-testid={`filter-${filter.key}`}
                     onClick={() => togglePrimaryFilter(filter.key)}
-                    className="px-4 py-3 rounded-full text-xs font-medium transition-colors"
+                    className="px-4 py-2 rounded-full text-xs font-medium transition-colors"
                     style={{
                       backgroundColor: isActive ? COLORS.primaryGreen : "transparent",
                       color: isActive ? "white" : COLORS.darkText,
@@ -609,6 +600,63 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                   </button>
                 );
               })}
+            </div>
+
+            {/* Divider */}
+            <div className="h-6 w-px" style={{ backgroundColor: COLORS.borderGray }} />
+
+            {/* Action Icons: Transfer, Merge, Notes, Customer */}
+            <div className="flex items-center gap-1">
+              {/* Shift/Transfer Table */}
+              {canShiftTable && (
+                <button
+                  onClick={() => setShowShiftModal(true)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Shift Table"
+                  data-testid="shift-table-btn"
+                >
+                  <ArrowRightLeft className="w-5 h-5" style={{ color: COLORS.grayText }} />
+                </button>
+              )}
+
+              {/* Merge Tables */}
+              {canMergeOrder && (
+                <button
+                  onClick={() => setShowMergeModal(true)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Merge Tables"
+                  data-testid="merge-tables-btn"
+                >
+                  <GitMerge className="w-5 h-5" style={{ color: COLORS.grayText }} />
+                </button>
+              )}
+
+              {/* Order Notes */}
+              <button
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
+                title="Order Notes"
+                onClick={() => setShowNotesModal(true)}
+                data-testid="order-notes-btn"
+              >
+                <StickyNote className="w-5 h-5" style={{ color: orderNotes.length > 0 ? COLORS.primaryGreen : COLORS.grayText }} />
+                {orderNotes.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center text-white" style={{ backgroundColor: COLORS.primaryGreen }}>
+                    {orderNotes.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Customer Info */}
+              {canCustomerManage && (
+                <button 
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors" 
+                  title="Customer Info"
+                  onClick={() => setShowCustomerModal(true)}
+                  data-testid="customer-info-btn"
+                >
+                  <UserPlus className="w-5 h-5" style={{ color: customer ? COLORS.primaryGreen : COLORS.grayText }} />
+                </button>
+              )}
             </div>
 
             {/* Spacer */}
@@ -624,6 +672,27 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
             >
               <Plus className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
             </button>
+          </div>
+
+          {/* Search Row */}
+          <div className="px-4 py-3 flex-shrink-0" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.grayText }} />
+              <input
+                data-testid="menu-search-input"
+                type="text"
+                placeholder="Search items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border focus:outline-none focus:ring-2"
+                style={{ 
+                  backgroundColor: "#f9fafb", 
+                  color: COLORS.darkText,
+                  borderColor: COLORS.borderGray,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+                }}
+              />
+            </div>
           </div>
 
           {/* Menu Items - Pill Layout */}
@@ -745,19 +814,11 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
             />
           ) : (
             <>
-              {/* Header Row: Back + Table Selector + KOT Toggle */}
+              {/* Header Row: Table Selector + Cancel + Split */}
               <div
-                className="px-4 py-3 flex items-center gap-4"
+                className="px-4 py-3 flex items-center gap-3"
                 style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
               >
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  data-testid="order-entry-back-btn"
-                >
-                  <ChevronLeft className="w-6 h-6" style={{ color: COLORS.primaryOrange }} />
-                </button>
-
                 {/* Order Type Selector */}
                 <div className="relative" ref={typeDropdownRef}>
                   <button
@@ -839,39 +900,10 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                   )}
                 </div>
 
-                {/* Customer Info — permission-gated */}
-                {canCustomerManage && (
-                <button 
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative" 
-                  title="Customer Info"
-                  onClick={() => setShowCustomerModal(true)}
-                  data-testid="customer-info-btn"
-                >
-                  <UserPlus className="w-5 h-5" style={{ color: customer ? COLORS.primaryGreen : COLORS.grayText }} />
-                </button>
-                )}
-
-                {/* Order Notes */}
-                <button
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
-                  title="Order Notes"
-                  onClick={() => setShowNotesModal(true)}
-                  data-testid="order-notes-btn"
-                >
-                  <StickyNote className="w-5 h-5" style={{ color: orderNotes.length > 0 ? COLORS.primaryGreen : COLORS.grayText }} />
-                  {orderNotes.length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center text-white" style={{ backgroundColor: COLORS.primaryGreen }}>
-                      {orderNotes.length}
-                    </span>
-                  )}
-                </button>
-
                 {/* Spacer */}
                 <div className="flex-1" />
 
-                {/* Trash icon — context-aware:
-                    unplaced items exist → Clear unplaced items (local)
-                    all items placed → Cancel Order (API) — permission + cancellation gated */}
+                {/* Cancel Order/Clear Cart - context-aware */}
                 {(() => {
                   const hasUnplaced = cartItems.some(i => !i.placed);
                   const hasPlaced = cartItems.some(i => i.placed && i.status !== 'cancelled');
@@ -884,27 +916,14 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                         ? setCartItems(prev => prev.filter(i => i.placed))
                         : setShowCancelOrderModal(true)
                       }
-                      className="p-1.5 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0"
+                      className="p-2 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0 flex items-center gap-1"
                       title={hasUnplaced ? "Clear unplaced items" : "Cancel Order"}
-                      data-testid="clear-cart-btn"
+                      data-testid="cancel-order-btn"
                     >
-                      <Trash2 className="w-4 h-4" style={{ color: '#EF4444' }} />
+                      <X className="w-5 h-5" style={{ color: '#EF4444' }} />
                     </button>
                   );
                 })()}
-
-                {/* KOT Toggle - Right aligned */}
-                <div
-                  onClick={() => setPrintAllKOT(!printAllKOT)}
-                  className="w-10 h-5 rounded-full relative cursor-pointer transition-colors flex-shrink-0"
-                  style={{ backgroundColor: printAllKOT ? COLORS.primaryGreen : COLORS.borderGray }}
-                  title="Print All KOT's"
-                >
-                  <div
-                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all"
-                    style={{ left: printAllKOT ? "22px" : "2px" }}
-                  />
-                </div>
 
                 {/* Split Bill Button - Only for placed orders with 2+ items */}
                 {placedOrderId && cartItems.filter(i => i.placed).length >= 2 && (

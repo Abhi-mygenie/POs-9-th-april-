@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
-import { ChevronRight, ChevronLeft, ArrowRightLeft, GitMerge, Search, ChevronDown } from "lucide-react";
+import { ChevronRight, Search, ChevronDown } from "lucide-react";
 import { COLORS } from "../../constants";
 
-const CategoryPanel = ({ activeCategory, onCategoryChange, onShiftTable, onMergeTable, onBack, categories = [], canShiftTable = true, canMergeOrder = true }) => {
+const CategoryPanel = ({ activeCategory, onCategoryChange, onBack, categories = [] }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Build full category list: All + Popular + real categories from API
@@ -33,51 +33,11 @@ const CategoryPanel = ({ activeCategory, onCategoryChange, onShiftTable, onMerge
       style={{ backgroundColor: COLORS.lightBg, borderRight: `1px solid ${COLORS.borderGray}` }}
       data-testid="category-panel"
     >
-      {/* Action buttons with Back arrow */}
-      <div
-        className="px-3 py-3 flex items-center justify-between"
-        style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
-      >
-        {/* Back button */}
-        <button
-          onClick={onBack}
-          className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
-          title="Go Back"
-          data-testid="category-back-btn"
-        >
-          <ChevronLeft className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
-        </button>
-        
-        {/* Shift & Merge buttons — permission-gated */}
-        <div className="flex items-center gap-3">
-          {canShiftTable && (
-          <button
-            onClick={onShiftTable}
-            className="p-3 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Shift Table"
-            data-testid="shift-table-btn"
-          >
-            <ArrowRightLeft className="w-4 h-4" style={{ color: COLORS.grayText }} />
-          </button>
-          )}
-          {canMergeOrder && (
-          <button
-            onClick={onMergeTable}
-            className="p-3 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Merge Tables"
-            data-testid="merge-tables-btn"
-          >
-            <GitMerge className="w-4 h-4" style={{ color: COLORS.grayText }} />
-          </button>
-          )}
-        </div>
-      </div>
-
-      {/* Search box */}
-      <div className="px-2 py-2" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
+      {/* Search box - Enhanced styling */}
+      <div className="px-2 py-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
         <div className="relative">
           <Search 
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5" 
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" 
             style={{ color: COLORS.grayText }} 
           />
           <input
@@ -85,11 +45,12 @@ const CategoryPanel = ({ activeCategory, onCategoryChange, onShiftTable, onMerge
             placeholder="Search category"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-7 pr-2 py-1.5 text-xs rounded-lg border focus:outline-none focus:ring-1"
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-2"
             style={{ 
               borderColor: COLORS.borderGray, 
-              backgroundColor: "white",
-              fontSize: "12px"
+              backgroundColor: "#f9fafb",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+              fontSize: "13px"
             }}
             data-testid="category-search-input"
           />
