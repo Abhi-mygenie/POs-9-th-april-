@@ -1001,6 +1001,10 @@ const DashboardPage = () => {
         onRefresh={handleRefreshAll}
         isRefreshing={isRefreshing}
         isOrderEntryOpen={orderEntryType !== null}
+        activeView={activeView}
+        setActiveView={setActiveView}
+        dashboardView={dashboardView}
+        setDashboardView={setDashboardView}
       />
 
       <SettingsPanel

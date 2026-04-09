@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { 
   ChevronDown, User, Home as HomeIcon, ClipboardList, BarChart3, 
   UtensilsCrossed, Users, Wallet, Package, Settings, LogOut, 
-  PanelLeftClose, PanelLeft, RefreshCw, Bell, BellOff, Eye 
+  PanelLeftClose, PanelLeft, RefreshCw, Bell, BellOff, Eye,
+  LayoutGrid, List, Columns, Rows
 } from "lucide-react";
 import { COLORS, GENIE_LOGO_URL } from "../../constants";
 import { useAuth, useRestaurant, useMenu, useTables, useSettings } from "../../contexts";
@@ -107,7 +108,22 @@ const sidebarMenuItems = [
 ];
 
 // Sidebar Component
-const Sidebar = ({ isExpanded, setIsExpanded, isSilentMode, setIsSilentMode, onOpenSettings, onOpenMenu, onRefresh, isRefreshing, isOrderEntryOpen }) => {
+const Sidebar = ({ 
+  isExpanded, 
+  setIsExpanded, 
+  isSilentMode, 
+  setIsSilentMode, 
+  onOpenSettings, 
+  onOpenMenu, 
+  onRefresh, 
+  isRefreshing, 
+  isOrderEntryOpen,
+  // View toggle props
+  activeView,
+  setActiveView,
+  dashboardView,
+  setDashboardView,
+}) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, logout: authLogout, hasPermission } = useAuth();
@@ -265,6 +281,80 @@ const Sidebar = ({ isExpanded, setIsExpanded, isSilentMode, setIsSilentMode, onO
           </button>
         )}
       </div>
+
+      {/* View Toggle Section */}
+      {(activeView !== undefined || dashboardView !== undefined) && (
+        <div 
+          className="px-3 py-3"
+          style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
+        >
+          {/* View Type: Table / Order */}
+          {activeView !== undefined && setActiveView && (
+            <div className={`flex items-center ${isExpanded ? 'gap-2' : 'flex-col gap-1'}`}>
+              {isExpanded && <span className="text-xs font-medium" style={{ color: COLORS.grayText }}>View:</span>}
+              <div className={`flex ${isExpanded ? 'gap-1' : 'flex-col gap-1'}`}>
+                <button
+                  data-testid="view-toggle-table"
+                  onClick={() => setActiveView('table')}
+                  className={`p-2 rounded-lg transition-colors ${isExpanded ? '' : 'mx-auto'}`}
+                  style={{
+                    backgroundColor: activeView === 'table' ? `${COLORS.primaryGreen}15` : 'transparent',
+                    color: activeView === 'table' ? COLORS.primaryGreen : COLORS.grayText,
+                  }}
+                  title="Table View"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  data-testid="view-toggle-order"
+                  onClick={() => setActiveView('order')}
+                  className={`p-2 rounded-lg transition-colors ${isExpanded ? '' : 'mx-auto'}`}
+                  style={{
+                    backgroundColor: activeView === 'order' ? `${COLORS.primaryGreen}15` : 'transparent',
+                    color: activeView === 'order' ? COLORS.primaryGreen : COLORS.grayText,
+                  }}
+                  title="Order View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Dashboard Grouping: Channel / Status */}
+          {dashboardView !== undefined && setDashboardView && (
+            <div className={`flex items-center ${isExpanded ? 'gap-2 mt-2' : 'flex-col gap-1 mt-2'}`}>
+              {isExpanded && <span className="text-xs font-medium" style={{ color: COLORS.grayText }}>Group:</span>}
+              <div className={`flex ${isExpanded ? 'gap-1' : 'flex-col gap-1'}`}>
+                <button
+                  data-testid="dash-toggle-channel"
+                  onClick={() => setDashboardView('channel')}
+                  className={`p-2 rounded-lg transition-colors ${isExpanded ? '' : 'mx-auto'}`}
+                  style={{
+                    backgroundColor: dashboardView === 'channel' ? `${COLORS.primaryGreen}15` : 'transparent',
+                    color: dashboardView === 'channel' ? COLORS.primaryGreen : COLORS.grayText,
+                  }}
+                  title="By Channel"
+                >
+                  <Columns className="w-4 h-4" />
+                </button>
+                <button
+                  data-testid="dash-toggle-status"
+                  onClick={() => setDashboardView('status')}
+                  className={`p-2 rounded-lg transition-colors ${isExpanded ? '' : 'mx-auto'}`}
+                  style={{
+                    backgroundColor: dashboardView === 'status' ? `${COLORS.primaryGreen}15` : 'transparent',
+                    color: dashboardView === 'status' ? COLORS.primaryGreen : COLORS.grayText,
+                  }}
+                  title="By Status"
+                >
+                  <Rows className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Menu Items */}
       <nav className="flex-1 overflow-y-auto py-4">

@@ -52,12 +52,8 @@ const Header = ({
   onAddOrder
 }) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [viewDropdownOpen, setViewDropdownOpen] = useState(false);
-  const [dashDropdownOpen, setDashDropdownOpen] = useState(false);
   const searchRef = useRef(null);
   const dropdownRef = useRef(null);
-  const viewDropdownRef = useRef(null);
-  const dashDropdownRef = useRef(null);
 
   // Filter channels based on restaurant features
   const { features } = useRestaurant();
@@ -80,12 +76,6 @@ const Header = ({
         !dropdownRef.current.contains(event.target)
       ) {
         setIsSearchFocused(false);
-      }
-      if (viewDropdownRef.current && !viewDropdownRef.current.contains(event.target)) {
-        setViewDropdownOpen(false);
-      }
-      if (dashDropdownRef.current && !dashDropdownRef.current.contains(event.target)) {
-        setDashDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -542,9 +532,20 @@ const Header = ({
           </div>
         </div>
 
-        {/* Right Section - Actions + View Toggles */}
+        {/* Right Section - Online Status + Add Button */}
         <div className="flex items-center gap-3">
-          {/* Add Order Button - Labeled */}
+          {/* Online/Offline Status - Just circle indicator */}
+          <div
+            data-testid="online-status"
+            title={isOnline ? "Online" : "Offline"}
+          >
+            <div 
+              className="w-2.5 h-2.5 rounded-full" 
+              style={{ backgroundColor: isOnline ? "#4CAF50" : "#F44336" }} 
+            />
+          </div>
+
+          {/* Add Order Button - Extreme Right */}
           <button
             data-testid="add-table-btn"
             className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg transition-colors hover:opacity-80"
@@ -554,98 +555,6 @@ const Header = ({
             <PlusSquare className="w-4 h-4" />
             <span className="text-sm font-medium">Add</span>
           </button>
-          
-          {/* View Dropdown - Table / Order */}
-          <div className="relative" ref={viewDropdownRef}>
-            <button
-              data-testid="view-dropdown-btn"
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg transition-colors bg-gray-100 hover:bg-gray-200"
-              style={{ color: COLORS.darkText }}
-              onClick={() => { setViewDropdownOpen(!viewDropdownOpen); setDashDropdownOpen(false); }}
-            >
-              <span className="text-sm font-medium">{activeView === "table" ? "Table" : "Order"}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${viewDropdownOpen ? "rotate-180" : ""}`} style={{ color: COLORS.grayText }} />
-            </button>
-            {viewDropdownOpen && (
-              <div 
-                data-testid="view-dropdown-menu"
-                className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border z-50 overflow-hidden"
-                style={{ borderColor: COLORS.borderGray }}
-              >
-                <button
-                  data-testid="view-option-table"
-                  className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors"
-                  style={{ color: activeView === "table" ? COLORS.primaryOrange : COLORS.darkText }}
-                  onClick={() => { setActiveView("table"); setViewDropdownOpen(false); }}
-                >
-                  <span>Table View</span>
-                  {activeView === "table" && <Check className="w-4 h-4" />}
-                </button>
-                <button
-                  data-testid="view-option-order"
-                  className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors"
-                  style={{ color: activeView === "order" ? COLORS.primaryOrange : COLORS.darkText }}
-                  onClick={() => { setActiveView("order"); setViewDropdownOpen(false); }}
-                >
-                  <span>Order View</span>
-                  {activeView === "order" && <Check className="w-4 h-4" />}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Dashboard View Dropdown - Channel / Status (only when USE_STATUS_VIEW is enabled) */}
-          {USE_STATUS_VIEW && setDashboardView && (
-            <div className="relative" ref={dashDropdownRef}>
-              <button
-                data-testid="dash-view-dropdown-btn"
-                className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg transition-colors bg-gray-100 hover:bg-gray-200"
-                style={{ color: COLORS.darkText }}
-                onClick={() => { setDashDropdownOpen(!dashDropdownOpen); setViewDropdownOpen(false); }}
-              >
-                <span className="text-sm font-medium">{dashboardView === "channel" ? "Channel" : "Status"}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${dashDropdownOpen ? "rotate-180" : ""}`} style={{ color: COLORS.grayText }} />
-              </button>
-              {dashDropdownOpen && (
-                <div 
-                  data-testid="dash-view-dropdown-menu"
-                  className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border z-50 overflow-hidden"
-                  style={{ borderColor: COLORS.borderGray }}
-                >
-                  <button
-                    data-testid="dash-option-channel"
-                    className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors"
-                    style={{ color: dashboardView === "channel" ? COLORS.primaryOrange : COLORS.darkText }}
-                    onClick={() => { setDashboardView("channel"); setDashDropdownOpen(false); }}
-                  >
-                    <span>By Channel</span>
-                    {dashboardView === "channel" && <Check className="w-4 h-4" />}
-                  </button>
-                  <button
-                    data-testid="dash-option-status"
-                    className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors"
-                    style={{ color: dashboardView === "status" ? COLORS.primaryOrange : COLORS.darkText }}
-                    onClick={() => { setDashboardView("status"); setDashDropdownOpen(false); }}
-                  >
-                    <span>By Status</span>
-                    {dashboardView === "status" && <Check className="w-4 h-4" />}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Online/Offline Status - Just circle indicator */}
-          <div
-            data-testid="online-status"
-            className="ml-1"
-            title={isOnline ? "Online" : "Offline"}
-          >
-            <div 
-              className="w-2.5 h-2.5 rounded-full" 
-              style={{ backgroundColor: isOnline ? "#4CAF50" : "#F44336" }} 
-            />
-          </div>
         </div>
       </div>
     </header>
