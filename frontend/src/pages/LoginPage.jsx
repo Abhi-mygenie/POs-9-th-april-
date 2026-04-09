@@ -111,7 +111,7 @@ const LoginPage = () => {
           </h1>
           <h2 
             className="text-xl font-semibold"
-            style={{ color: COLORS.darkText }}
+            style={{ color: COLORS.primaryGreen }}
           >
             Exceptional Experience.
           </h2>

@@ -416,7 +416,7 @@ const LoadingPage = () => {
           className="text-center text-sm mb-8"
           style={{ color: COLORS.grayText }}
         >
-          Please wait while we load your data
+          Please wait while we set up your system
         </p>
 
         {/* Loading Checklist */}
