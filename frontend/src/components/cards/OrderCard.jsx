@@ -535,7 +535,7 @@ const OrderCard = ({
                 data-testid={`cancel-order-btn-${orderId}`}
                 onClick={() => onCancelOrder?.(order)}
                 className="min-h-[44px] min-w-[44px] rounded-lg border flex items-center justify-center"
-                style={{ borderColor: COLORS.errorText, color: COLORS.errorText }}
+                style={{ borderColor: COLORS.borderGray, color: COLORS.grayText }}
                 title="Cancel Order"
               >
                 <X className="w-5 h-5" />
@@ -551,7 +551,7 @@ const OrderCard = ({
               <button
                 data-testid={`ready-btn-${orderId}`}
                 className="min-h-[44px] px-6 text-sm font-bold rounded-lg"
-                style={{ backgroundColor: COLORS.primaryOrange, color: "white" }}
+                style={{ backgroundColor: "#FFF3E8", color: COLORS.primaryOrange }}
                 onClick={() => onMarkReady?.(order)}
               >
                 Ready
@@ -561,7 +561,7 @@ const OrderCard = ({
               <button
                 data-testid={`serve-btn-${orderId}`}
                 className="min-h-[44px] px-6 text-sm font-bold rounded-lg"
-                style={{ backgroundColor: COLORS.primaryGreen, color: "white" }}
+                style={{ backgroundColor: "#E8F5E9", color: COLORS.primaryGreen }}
                 onClick={() => onMarkServed?.(order)}
               >
                 Serve
