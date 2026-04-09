@@ -90,6 +90,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
     subtotalBeforeTax: orderData?.subtotalBeforeTax || 0,
   });
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [tableSearchQuery, setTableSearchQuery] = useState(""); // Search filter for tables dropdown
   const [editingQtyItemId, setEditingQtyItemId] = useState(null);
   const [flashItemId, setFlashItemId] = useState(null);
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
@@ -100,6 +101,15 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
   const effectiveTable = { ...table, orderId: placedOrderId || table?.orderId };
   const cartKeyRef = useRef(null); // tracks previous table key for save-on-switch
   const typeDropdownRef = useRef(null);
+
+  // Filter tables based on search query
+  const filteredTables = useMemo(() => {
+    if (!tableSearchQuery.trim()) return allTables;
+    const query = tableSearchQuery.toLowerCase();
+    return allTables.filter(t => 
+      (t.label || t.id || '').toLowerCase().includes(query)
+    );
+  }, [allTables, tableSearchQuery]);
 
   // ── Permission flags ──
   const canCancelOrder = hasPermission('order_cancel');
@@ -857,10 +867,37 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                       })}
 
                       <div className="h-px mx-3" style={{ backgroundColor: COLORS.borderGray }} />
+                      
+                      {/* Table Search */}
                       <div className="px-3 py-2">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: COLORS.grayText }} />
+                          <input
+                            type="text"
+                            placeholder="Search tables..."
+                            value={tableSearchQuery}
+                            onChange={(e) => setTableSearchQuery(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full pl-8 pr-3 py-2 rounded-lg text-sm border focus:outline-none focus:ring-1"
+                            style={{ 
+                              borderColor: COLORS.borderGray,
+                              backgroundColor: "#f9fafb",
+                              fontSize: "12px"
+                            }}
+                            data-testid="table-search-input"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="px-3 py-1">
                         <span className="text-xs font-medium" style={{ color: COLORS.grayText }}>Tables</span>
                       </div>
-                      {[...allTables]
+                      {filteredTables.length === 0 ? (
+                        <div className="px-4 py-3 text-sm text-center" style={{ color: COLORS.grayText }}>
+                          No tables found
+                        </div>
+                      ) : (
+                        [...filteredTables]
                         .sort((a, b) => {
                           const aPri = DROPDOWN_TABLE_SORT[a.status] ?? 5;
                           const bPri = DROPDOWN_TABLE_SORT[b.status] ?? 5;
@@ -879,7 +916,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                                 color: isSelected ? COLORS.primaryOrange : isAvailable ? COLORS.darkText : COLORS.grayText,
                                 backgroundColor: isSelected ? `${COLORS.primaryOrange}10` : "transparent",
                               }}
-                              onClick={() => { onSelectTable?.(t); setShowTypeDropdown(false); }}
+                              onClick={() => { onSelectTable?.(t); setShowTypeDropdown(false); setTableSearchQuery(""); }}
                             >
                               <span className="font-medium truncate min-w-0">{t.label || t.id}</span>
                               <span className="text-xs capitalize whitespace-nowrap flex-shrink-0 ml-2" style={{ color: isAvailable ? COLORS.primaryGreen : COLORS.grayText }}>
@@ -887,7 +924,8 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                               </span>
                             </button>
                           );
-                        })}
+                        })
+                      )}
                     </div>
                   )}
                 </div>
