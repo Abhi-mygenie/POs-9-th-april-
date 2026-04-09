@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Utensils, XCircle, Pencil, CookingPot, UtensilsCrossed, Check, User, Phone, Trash2, ArrowLeftRight, RefreshCw, ChevronDown, ChevronUp, LayoutGrid } from "lucide-react";
 import { COLORS } from "../../constants";
 import { searchCustomers } from "../../api/services/customerService";
-import RePrintButton from "./RePrintButton";
+import { RePrintOnlyButton, KotBillCheckboxes } from "./RePrintButton";
 import { useSettings } from "../../contexts/SettingsContext";
 
 // Get icon, color, and bg for food item status
@@ -545,7 +545,7 @@ const CartPanel = ({
               <div key={`${item.id}-${index}`}>
                 {showKotSeparator && canPrintBill && (
                   <div className="px-4 py-2" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
-                    <RePrintButton />
+                    <RePrintOnlyButton />
                   </div>
                 )}
                 {item.placed ? (
@@ -577,10 +577,17 @@ const CartPanel = ({
           })
         )}
 
-        {/* Re-Print at end of placed items - permission gated */}
-        {canPrintBill && cartItems.some(i => i.placed) && (
+        {/* Re-Print at end of placed items - ONLY if there are placed items and NO new items after */}
+        {canPrintBill && cartItems.some(i => i.placed) && !cartItems.some(i => !i.placed) && (
           <div className="px-4 py-3">
-            <RePrintButton />
+            <RePrintOnlyButton />
+          </div>
+        )}
+
+        {/* KOT/Bill checkboxes - ONLY if there are new (unplaced) items */}
+        {cartItems.some(i => !i.placed) && (
+          <div className="px-4 py-3" style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
+            <KotBillCheckboxes />
           </div>
         )}
       </div>
