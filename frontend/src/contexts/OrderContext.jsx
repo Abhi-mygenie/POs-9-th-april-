@@ -209,6 +209,7 @@ export const OrderProvider = ({ children }) => {
           orderNote: order.orderNote,
           isRoom: order.isRoom,
           associatedOrders: order.associatedOrders || [],
+          fOrderStatus: order.fOrderStatus,
         };
       }
     }

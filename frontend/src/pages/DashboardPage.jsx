@@ -28,10 +28,10 @@ const searchItems = (items, query, getFields) => {
   const partial = [];
   items.forEach(item => {
     const fields = getFields(item);
-    const idMatch = fields.id.toLowerCase();
+    const idMatch = (fields.id || '').toLowerCase();
     if (idMatch === query) {
       exact.push(item);
-    } else if (fields.all.some(f => f.toLowerCase().includes(query))) {
+    } else if (fields.all.some(f => f && f.toLowerCase().includes(query))) {
       partial.push(item);
     }
   });
