@@ -103,32 +103,20 @@ const ChannelColumn = ({
           <ChevronLeft className="w-5 h-5" style={{ color: COLORS.grayText }} />
         </button>
 
-        {/* Channel Name, Count & Hide Link */}
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm whitespace-nowrap" style={{ color: COLORS.darkText }}>
-              {channel.name}
-            </span>
-            <span 
-              className="text-xs px-2 py-0.5 rounded-full"
-              style={{ 
-                backgroundColor: COLORS.borderGray,
-                color: COLORS.grayText,
-              }}
-            >
-              {activeCount}
-            </span>
-          </div>
-          {onHideColumn && (
-            <button
-              data-testid={`hide-column-${channel.id}`}
-              onClick={() => onHideColumn(channel.id)}
-              className="text-xs hover:underline mt-0.5"
-              style={{ color: COLORS.grayText }}
-            >
-              Hide
-            </button>
-          )}
+        {/* Channel Name & Count */}
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-sm whitespace-nowrap" style={{ color: COLORS.darkText }}>
+            {channel.name}
+          </span>
+          <span 
+            className="text-xs px-2 py-0.5 rounded-full"
+            style={{ 
+              backgroundColor: COLORS.borderGray,
+              color: COLORS.grayText,
+            }}
+          >
+            {activeCount}
+          </span>
         </div>
 
         {/* Right Arrow - INCREASE this channel's columns */}

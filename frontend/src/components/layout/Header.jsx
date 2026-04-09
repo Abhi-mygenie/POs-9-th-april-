@@ -120,16 +120,13 @@ const Header = ({
   // Determine which statuses to show based on view (same for all channels including Room)
   const isTableView = activeView === "table";
   
-  // Get visible status filters: first filter by enabled, then by hidden
+  // Get visible status filters: filter by enabled, then limit to max 6
   const visibleStatusFilters = allStatusFilters
     .filter(s => enabledStatuses.length === 0 || enabledStatuses.includes(s.id))  // Filter by enabled (if configured)
-    .filter(s => !hiddenStatuses.includes(s.id));  // Then filter by hidden
+    .slice(0, 6);  // Max 6 filters in header
   
-  // Get visible channel filters (exclude hidden channels) for Status View  
-  const visibleChannelFilters = visibleChannels.filter(c => !hiddenChannels.includes(c.id));
-  
-  // Calculate total hidden count for restore button
-  const totalHidden = hiddenChannels.length + hiddenStatuses.length;
+  // Get visible channel filters for Status View (max 6)
+  const visibleChannelFilters = visibleChannels.slice(0, 6);
 
   // Dynamic search placeholder based on selected channels
   const getSearchPlaceholder = () => {
@@ -191,7 +188,7 @@ const Header = ({
       className="px-3 py-2"
       style={{ backgroundColor: COLORS.lightBg, borderBottom: `1px solid ${COLORS.borderGray}` }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center">
         {/* Left Section - Logo + Filters */}
         <div className="flex items-center gap-4">
           {/* Logo */}
@@ -203,7 +200,7 @@ const Header = ({
             />
           </div>
 
-          {/* Filter Pills - Swap based on dashboardView */}
+          {/* Filter Pills - Swap based on dashboardView (max 6) */}
           {/* Status View → Channel filters | Channel View → Status filters */}
           <nav className="flex items-center gap-1 ml-4">
             {dashboardView === 'status' ? (
@@ -258,14 +255,13 @@ const Header = ({
           </nav>
         </div>
 
-        {/* Right Section - Search + Actions + View Toggles */}
-        <div className="flex items-center gap-3">
-          {/* Search Input with Dropdown */}
+        {/* Center Section - Search (flex-1 to take available space) */}
+        <div className="flex-1 flex justify-center px-4">
           <div className="relative">
             <div 
               ref={searchRef}
               className={`flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all ${
-                isSearchFocused ? "w-64" : "w-48"
+                isSearchFocused ? "w-72" : "w-56"
               }`}
               style={{ 
                 backgroundColor: COLORS.sectionBg,
@@ -303,7 +299,7 @@ const Header = ({
               <div
                 ref={dropdownRef}
                 data-testid="search-dropdown"
-                className="absolute top-full left-0 mt-1 w-96 bg-white rounded-lg shadow-lg border overflow-hidden z-50 max-h-96 overflow-y-auto"
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-96 bg-white rounded-lg shadow-lg border overflow-hidden z-50 max-h-96 overflow-y-auto"
                 style={{ borderColor: COLORS.borderGray }}
               >
                 {/* Tables - Exact Matches */}
@@ -544,10 +540,10 @@ const Header = ({
               </div>
             )}
           </div>
+        </div>
 
-          {/* Divider */}
-          <div className="w-px h-6" style={{ backgroundColor: COLORS.borderGray }} />
-
+        {/* Right Section - Actions + View Toggles */}
+        <div className="flex items-center gap-3">
           {/* Add Order Button - Labeled */}
           <button
             data-testid="add-table-btn"
@@ -637,22 +633,6 @@ const Header = ({
                 </div>
               )}
             </div>
-          )}
-
-          {/* Restore Hidden Button - shows when columns/filters are hidden */}
-          {totalHidden > 0 && onRestoreHidden && (
-            <button
-              data-testid="restore-hidden-btn"
-              onClick={onRestoreHidden}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all hover:opacity-80"
-              style={{ 
-                backgroundColor: COLORS.primaryOrange,
-                color: 'white',
-              }}
-              title={`Restore ${totalHidden} hidden item(s)`}
-            >
-              Show Hidden ({totalHidden})
-            </button>
           )}
 
           {/* Online/Offline Status - Just circle indicator */}
