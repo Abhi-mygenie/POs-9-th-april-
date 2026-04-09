@@ -208,7 +208,7 @@ const OrderCard = ({
         </div>
 
         {/* Center: Amount - Bold + Large */}
-        <span className="font-extrabold text-lg flex-shrink-0" style={{ color: COLORS.primaryOrange }}>
+        <span className="font-extrabold text-lg flex-shrink-0" style={{ color: COLORS.grayText }}>
           ₹{(order.amount || 0).toLocaleString()}
         </span>
 
