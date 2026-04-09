@@ -879,7 +879,7 @@ const DashboardPage = () => {
 
   const handleAddOrder = () => {
     setOrderEntryTable(null);
-    setOrderEntryType("delivery");
+    setOrderEntryType("walkIn");
   };
 
   const handleOrderTypeChange = (newType) => {
