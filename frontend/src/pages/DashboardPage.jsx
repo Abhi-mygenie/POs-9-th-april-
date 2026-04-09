@@ -695,15 +695,35 @@ const DashboardPage = () => {
     const query = searchQuery.toLowerCase().trim();
 
     if (activeChannels.includes("dineIn")) {
-      const enriched = allTablesList.map(table => {
+      // Combine regular tables + walk-in orders for search
+      const walkInSearchItems = walkInOrders.map(order => ({
+        id: `wc-${order.orderId}`,
+        label: order.customerName || 'Walk-In',
+        tableId: order.orderId,
+        isWalkIn: true,
+        customer: order.customerName || '',
+        phone: order.phone || '',
+        status: 'occupied',
+        amount: order.amount,
+        fOrderStatus: order.fOrderStatus,
+        orderId: order.orderId
+      }));
+
+      const enrichedTables = allTablesList.filter(t => !t.isWalkIn).map(table => {
         const orderData = orderItemsByTableId[table.tableId] || {};
         return {
           ...table,
           customer: orderData.customer || table.label || "",
-          phone: orderData.phone || ""
+          phone: orderData.phone || "",
+          status: orderData.status || table.status || "available",
+          amount: orderData.amount || table.amount,
+          fOrderStatus: orderData.fOrderStatus || table.fOrderStatus
         };
       });
-      results.tables = searchItems(enriched, query, item => ({
+
+      const allSearchableTables = [...enrichedTables, ...walkInSearchItems];
+      
+      results.tables = searchItems(allSearchableTables, query, item => ({
         id: item.id,
         all: [item.label || item.id, item.customer, item.phone]
       }));
@@ -724,14 +744,19 @@ const DashboardPage = () => {
     }
 
     if (activeChannels.includes("room")) {
-      results.rooms = searchItems(allRoomsList, query, item => ({
+      // Enrich rooms with status and amount
+      const enrichedRooms = allRoomsList.map(room => ({
+        ...room,
+        guest: room.customer || room.guestName || (room.status === 'available' ? 'Available' : ''),
+      }));
+      results.rooms = searchItems(enrichedRooms, query, item => ({
         id: item.id,
-        all: [item.id, item.guestName || ""]
+        all: [item.id, item.guestName || item.guest || ""]
       }));
     }
 
     return results;
-  }, [searchQuery, activeChannels, allTablesList, allRoomsList, deliveryOrders, takeAwayOrders, orderItemsByTableId]);
+  }, [searchQuery, activeChannels, allTablesList, allRoomsList, deliveryOrders, takeAwayOrders, walkInOrders, orderItemsByTableId]);
 
   const matchingTableIds = useMemo(() => getMatchingIds(searchQuery, searchResults.tables), [searchQuery, searchResults]);
   const matchingRoomIds = useMemo(() => getMatchingIds(searchQuery, searchResults.rooms), [searchQuery, searchResults]);

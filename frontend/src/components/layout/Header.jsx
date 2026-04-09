@@ -107,6 +107,22 @@ const Header = ({
     return "Walk-in"; // Only for occupied tables without customer
   };
 
+  // Helper to get order status label from fOrderStatus
+  const getOrderStatusLabel = (fOrderStatus) => {
+    switch (fOrderStatus) {
+      case 1: return "Preparing";
+      case 2: return "Ready";
+      case 3: return "Served";
+      default: return null;
+    }
+  };
+
+  // Helper to format amount
+  const formatAmount = (amount) => {
+    if (!amount && amount !== 0) return null;
+    return `₹${Number(amount).toLocaleString('en-IN')}`;
+  };
+
   // Determine which statuses to show based on view (same for all channels including Room)
   const isTableView = activeView === "table";
   
@@ -312,7 +328,16 @@ const Header = ({
                         >
                           {getTableDisplayText(item)}
                         </span>
-                        {item.phone && <span className="text-xs" style={{ color: COLORS.grayText }}>{item.phone}</span>}
+                        {getOrderStatusLabel(item.fOrderStatus) && (
+                          <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: COLORS.sectionBg, color: COLORS.grayText }}>
+                            {getOrderStatusLabel(item.fOrderStatus)}
+                          </span>
+                        )}
+                        {formatAmount(item.amount) && (
+                          <span className="text-xs font-medium" style={{ color: COLORS.darkText }}>
+                            {formatAmount(item.amount)}
+                          </span>
+                        )}
                         <button
                           onClick={() => handleSearchSelect({ type: 'table', data: item })}
                           className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
@@ -345,7 +370,16 @@ const Header = ({
                         >
                           {getTableDisplayText(item)}
                         </span>
-                        {item.phone && <span className="text-xs" style={{ color: COLORS.grayText }}>{item.phone}</span>}
+                        {getOrderStatusLabel(item.fOrderStatus) && (
+                          <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: COLORS.sectionBg, color: COLORS.grayText }}>
+                            {getOrderStatusLabel(item.fOrderStatus)}
+                          </span>
+                        )}
+                        {formatAmount(item.amount) && (
+                          <span className="text-xs font-medium" style={{ color: COLORS.darkText }}>
+                            {formatAmount(item.amount)}
+                          </span>
+                        )}
                         <button
                           onClick={() => handleSearchSelect({ type: 'table', data: item })}
                           className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
@@ -486,8 +520,18 @@ const Header = ({
                         className="w-full px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors border-l-2"
                         style={{ borderColor: COLORS.primaryGreen }}
                       >
-                        <span className="font-semibold text-sm" style={{ color: COLORS.primaryOrange }}>{item.id}</span>
-                        <span className="text-sm flex-1" style={{ color: COLORS.darkText }}>{item.guest || "Available"}</span>
+                        <span className="font-semibold text-sm" style={{ color: COLORS.primaryOrange }}>{item.label || item.id}</span>
+                        <span className="text-sm flex-1" style={{ color: item.guest && item.guest !== 'Available' ? COLORS.darkText : COLORS.grayText }}>{item.guest || "Available"}</span>
+                        {getOrderStatusLabel(item.fOrderStatus) && (
+                          <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: COLORS.sectionBg, color: COLORS.grayText }}>
+                            {getOrderStatusLabel(item.fOrderStatus)}
+                          </span>
+                        )}
+                        {formatAmount(item.amount) && (
+                          <span className="text-xs font-medium" style={{ color: COLORS.darkText }}>
+                            {formatAmount(item.amount)}
+                          </span>
+                        )}
                         <button
                           onClick={() => handleSearchSelect({ type: 'room', data: item })}
                           className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
@@ -513,8 +557,18 @@ const Header = ({
                         data-testid={`search-result-${item.id}`}
                         className="w-full px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors"
                       >
-                        <span className="font-medium text-sm" style={{ color: COLORS.primaryOrange }}>{item.id}</span>
-                        <span className="text-sm flex-1" style={{ color: COLORS.darkText }}>{item.guest || "Available"}</span>
+                        <span className="font-medium text-sm" style={{ color: COLORS.primaryOrange }}>{item.label || item.id}</span>
+                        <span className="text-sm flex-1" style={{ color: item.guest && item.guest !== 'Available' ? COLORS.darkText : COLORS.grayText }}>{item.guest || "Available"}</span>
+                        {getOrderStatusLabel(item.fOrderStatus) && (
+                          <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: COLORS.sectionBg, color: COLORS.grayText }}>
+                            {getOrderStatusLabel(item.fOrderStatus)}
+                          </span>
+                        )}
+                        {formatAmount(item.amount) && (
+                          <span className="text-xs font-medium" style={{ color: COLORS.darkText }}>
+                            {formatAmount(item.amount)}
+                          </span>
+                        )}
                         <button
                           onClick={() => handleSearchSelect({ type: 'room', data: item })}
                           className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
