@@ -976,7 +976,6 @@ const CollectPaymentPanel = ({
               </button>
             )}
           </div>
-          )}
 
           {/* Split Options */}
           {showSplit && (
