@@ -562,8 +562,8 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
 
         {/* MIDDLE PANEL - Menu Items */}
         <div className="flex-1 flex flex-col overflow-hidden" style={{ borderRight: `1px solid ${COLORS.borderGray}` }}>
-          {/* Header Row: Back + Filters + Action Icons */}
-          <div className="px-4 py-3 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
+          {/* Header Row: Filters + Action Icons */}
+          <div className="px-4 py-4 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
             {/* Primary Dietary Filters */}
             <div className="flex items-center gap-2">
               {[
@@ -670,7 +670,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
           </div>
 
           {/* Search Row with Add Custom Item */}
-          <div className="px-4 py-3 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
+          <div className="px-4 py-4 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.grayText }} />
               <input
@@ -684,7 +684,8 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                   backgroundColor: "#f9fafb", 
                   color: COLORS.darkText,
                   borderColor: COLORS.borderGray,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  fontSize: "13px"
                 }}
               />
             </div>
@@ -820,9 +821,9 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
             />
           ) : (
             <>
-              {/* Header Row: Table Selector + Cancel + Split */}
+              {/* Header Row: Table Selector + Split */}
               <div
-                className="px-4 py-3 flex items-center gap-3"
+                className="px-4 py-4 flex items-center gap-3"
                 style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
               >
                 {/* Order Type Selector */}

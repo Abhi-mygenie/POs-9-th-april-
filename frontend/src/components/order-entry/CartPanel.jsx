@@ -395,11 +395,11 @@ const CartPanel = ({
     <>
       {/* Quick Customer Fields */}
       <div 
-        className="px-3 py-3 grid grid-cols-2 gap-2"
+        className="px-3 py-4 grid grid-cols-2 gap-3"
         style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
       >
         <div className="relative" ref={nameInputRef}>
-          <User className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 z-10" style={{ color: COLORS.grayText }} />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 z-10" style={{ color: COLORS.grayText }} />
           <input
             type="text"
             placeholder="Customer name"
@@ -407,8 +407,13 @@ const CartPanel = ({
             onChange={handleNameChange}
             onBlur={handleFieldBlur}
             onFocus={() => customerName.length >= 2 && setShowNameSuggestions(filteredByName.length > 0)}
-            className="w-full pl-8 pr-2 py-2 rounded-lg text-sm border focus:outline-none focus:ring-1"
-            style={{ borderColor: COLORS.borderGray, fontSize: "13px" }}
+            className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm border focus:outline-none focus:ring-2"
+            style={{ 
+              borderColor: COLORS.borderGray, 
+              fontSize: "13px",
+              backgroundColor: "#f9fafb",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+            }}
             data-testid="quick-customer-name"
           />
           {/* Name Auto-suggest */}
@@ -438,7 +443,7 @@ const CartPanel = ({
           )}
         </div>
         <div className="relative" ref={phoneInputRef}>
-          <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: COLORS.grayText }} />
+          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.grayText }} />
           <input
             type="tel"
             placeholder="Phone number"
@@ -446,8 +451,13 @@ const CartPanel = ({
             onChange={handlePhoneChange}
             onBlur={handleFieldBlur}
             onFocus={() => customerPhone.length >= 3 && setShowPhoneSuggestions(filteredCustomers.length > 0)}
-            className="w-full pl-8 pr-2 py-2 rounded-lg text-sm border focus:outline-none focus:ring-1"
-            style={{ borderColor: COLORS.borderGray, fontSize: "13px" }}
+            className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm border focus:outline-none focus:ring-2"
+            style={{ 
+              borderColor: COLORS.borderGray, 
+              fontSize: "13px",
+              backgroundColor: "#f9fafb",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+            }}
             data-testid="quick-customer-phone"
           />
           {/* Phone Auto-suggest */}

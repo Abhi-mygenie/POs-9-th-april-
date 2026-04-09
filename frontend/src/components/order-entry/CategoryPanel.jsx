@@ -35,7 +35,7 @@ const CategoryPanel = ({ activeCategory, onCategoryChange, onBack, categories = 
     >
       {/* Back button */}
       <div
-        className="px-3 py-3 flex items-center"
+        className="px-3 py-4 flex items-center"
         style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
       >
         <button
@@ -49,7 +49,7 @@ const CategoryPanel = ({ activeCategory, onCategoryChange, onBack, categories = 
       </div>
 
       {/* Search box - Enhanced styling */}
-      <div className="px-2 py-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
+      <div className="px-3 py-4" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
         <div className="relative">
           <Search 
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" 
@@ -60,7 +60,7 @@ const CategoryPanel = ({ activeCategory, onCategoryChange, onBack, categories = 
             placeholder="Search category"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-2"
+            className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg border focus:outline-none focus:ring-2"
             style={{ 
               borderColor: COLORS.borderGray, 
               backgroundColor: "#f9fafb",
