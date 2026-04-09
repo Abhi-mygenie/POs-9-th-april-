@@ -860,10 +860,17 @@ const CollectPaymentPanel = ({
             💳 PAYMENT METHOD
           </div>
           
-          {/* Row 1: Primary Payment Methods (from config) */}
-          {enabledLayout.row1.length > 0 && (
-            <div className={`grid gap-2 mb-2`} style={{ gridTemplateColumns: `repeat(${Math.min(enabledLayout.row1.length, 3)}, 1fr)` }}>
-              {enabledLayout.row1.map((methodId) => {
+          {/* Row 1: 3 Primary Payment Methods from API */}
+          <div className="grid grid-cols-3 gap-2 mb-2">
+            {/* Get first 3 payment methods from API (cash, upi, card, etc.) */}
+            {(() => {
+              // Known primary methods that should go in Row 1
+              const primaryMethodIds = ['cash', 'upi', 'card'];
+              const row1Methods = primaryMethodIds
+                .filter(id => enabledLayout.row1.includes(id))
+                .slice(0, 3);
+              
+              return row1Methods.map((methodId) => {
                 const method = PAYMENT_METHODS[methodId];
                 if (!method) return null;
                 const Icon = method.icon;
@@ -886,13 +893,13 @@ const CollectPaymentPanel = ({
                     </span>
                   </button>
                 );
-              })}
-            </div>
-          )}
+              });
+            })()}
+          </div>
           
-          {/* Row 2: Actions - Split, Credit, ToRoom (from config, with special handling) */}
-          <div className={isRoom ? "" : `grid gap-2`} style={{ gridTemplateColumns: isRoom ? undefined : `repeat(${Math.min(enabledLayout.row2.filter(id => id !== 'transferToRoom' || !isRoom).length, 3)}, 1fr)` }}>
-            {/* Split Button - Special handling */}
+          {/* Row 2: Split + First Dynamic Type + Dropdown */}
+          <div className="grid grid-cols-3 gap-2">
+            {/* Split Button */}
             {enabledLayout.row2.includes('split') && (
               <button
                 onClick={() => { setShowSplit(!showSplit); if (!showSplit) setSplitType("payment"); }}
@@ -908,24 +915,54 @@ const CollectPaymentPanel = ({
               </button>
             )}
             
-            {/* Credit Button */}
-            {enabledLayout.row2.includes('credit') && !isRoom && (
+            {/* First Dynamic Type as Button */}
+            {dynamicPaymentTypes.length > 0 && (
               <button
-                onClick={() => { setPaymentMethod("credit"); setShowSplit(false); setSplitType(null); }}
+                onClick={() => { setPaymentMethod(dynamicPaymentTypes[0].id); setShowSplit(false); setSplitType(null); }}
                 className="py-3 px-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors"
                 style={{
-                  borderColor: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.borderGray,
-                  backgroundColor: paymentMethod === "credit" && !showSplit ? `${COLORS.primaryGreen}10` : "white",
+                  borderColor: paymentMethod === dynamicPaymentTypes[0].id && !showSplit ? COLORS.primaryGreen : COLORS.borderGray,
+                  backgroundColor: paymentMethod === dynamicPaymentTypes[0].id && !showSplit ? `${COLORS.primaryGreen}10` : "white",
                 }}
-                data-testid="payment-credit-btn"
+                data-testid={`payment-${dynamicPaymentTypes[0].id}-btn`}
               >
-                <FileText className="w-4 h-4" style={{ color: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.grayText }} />
-                <span className="text-xs" style={{ color: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.darkText }}>Credit</span>
+                <MoreHorizontal className="w-4 h-4" style={{ color: paymentMethod === dynamicPaymentTypes[0].id && !showSplit ? COLORS.primaryGreen : COLORS.grayText }} />
+                <span className="text-xs" style={{ color: paymentMethod === dynamicPaymentTypes[0].id && !showSplit ? COLORS.primaryGreen : COLORS.darkText }}>
+                  {dynamicPaymentTypes[0].displayName}
+                </span>
               </button>
             )}
             
-            {/* To Room Button - Special handling, only for non-room orders */}
-            {enabledLayout.row2.includes('transferToRoom') && !isRoom && (
+            {/* Dropdown for remaining dynamic types */}
+            {dynamicPaymentTypes.length > 1 && (
+              <select
+                value={dynamicPaymentTypes.slice(1).some(dt => dt.id === paymentMethod) ? paymentMethod : ""}
+                onChange={(e) => { 
+                  if (e.target.value) {
+                    setPaymentMethod(e.target.value); 
+                    setShowSplit(false); 
+                    setSplitType(null); 
+                  }
+                }}
+                className="py-3 px-2 rounded-lg border-2 text-xs"
+                style={{ 
+                  borderColor: dynamicPaymentTypes.slice(1).some(dt => dt.id === paymentMethod) ? COLORS.primaryGreen : COLORS.borderGray,
+                  backgroundColor: dynamicPaymentTypes.slice(1).some(dt => dt.id === paymentMethod) ? `${COLORS.primaryGreen}10` : "white",
+                  color: COLORS.darkText,
+                }}
+                data-testid="payment-dynamic-dropdown"
+              >
+                <option value="">More...</option>
+                {dynamicPaymentTypes.slice(1).map((dt) => (
+                  <option key={dt.id} value={dt.id}>
+                    {dt.displayName}
+                  </option>
+                ))}
+              </select>
+            )}
+            
+            {/* To Room Button - only for non-room orders with rooms available */}
+            {!isRoom && hasRooms && (
               <button
                 onClick={() => { setPaymentMethod("transferToRoom"); setShowSplit(false); setSplitType(null); }}
                 className="py-3 px-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors"
@@ -940,34 +977,6 @@ const CollectPaymentPanel = ({
               </button>
             )}
           </div>
-
-          {/* Dynamic Payment Types from API (Dineout, Zomato Gold, etc.) */}
-          {dynamicPaymentTypes.length > 0 && (
-            <div className="mt-2">
-              <select
-                value={paymentMethod}
-                onChange={(e) => { 
-                  if (e.target.value) {
-                    setPaymentMethod(e.target.value); 
-                    setShowSplit(false); 
-                    setSplitType(null); 
-                  }
-                }}
-                className="w-full py-2.5 px-3 rounded-lg border text-sm"
-                style={{ 
-                  borderColor: dynamicPaymentTypes.some(dt => dt.id === paymentMethod) ? COLORS.primaryGreen : COLORS.borderGray,
-                  backgroundColor: dynamicPaymentTypes.some(dt => dt.id === paymentMethod) ? `${COLORS.primaryGreen}10` : "white",
-                }}
-                data-testid="payment-dynamic-dropdown"
-              >
-                <option value="">More payment options...</option>
-                {dynamicPaymentTypes.map((dt) => (
-                  <option key={dt.id} value={dt.id}>
-                    {dt.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
           )}
 
           {/* Split Options */}
