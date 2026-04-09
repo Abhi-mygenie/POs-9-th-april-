@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ChevronRight, Search, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronLeft, Search, ChevronDown } from "lucide-react";
 import { COLORS } from "../../constants";
 
 const CategoryPanel = ({ activeCategory, onCategoryChange, onBack, categories = [] }) => {
@@ -33,6 +33,21 @@ const CategoryPanel = ({ activeCategory, onCategoryChange, onBack, categories = 
       style={{ backgroundColor: COLORS.lightBg, borderRight: `1px solid ${COLORS.borderGray}` }}
       data-testid="category-panel"
     >
+      {/* Back button */}
+      <div
+        className="px-3 py-3 flex items-center"
+        style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}
+      >
+        <button
+          onClick={onBack}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Go Back"
+          data-testid="category-back-btn"
+        >
+          <ChevronLeft className="w-6 h-6" style={{ color: COLORS.primaryOrange }} />
+        </button>
+      </div>
+
       {/* Search box - Enhanced styling */}
       <div className="px-2 py-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
         <div className="relative">

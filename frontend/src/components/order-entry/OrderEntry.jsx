@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { ChevronLeft, ChevronDown, Search, UserPlus, StickyNote, Plus, Truck, ShoppingBag, UtensilsCrossed, Scissors, ArrowRightLeft, GitMerge, X } from "lucide-react";
+import { ChevronDown, Search, UserPlus, StickyNote, Plus, Truck, ShoppingBag, UtensilsCrossed, Scissors, ArrowRightLeft, GitMerge, X } from "lucide-react";
 import { COLORS } from "../../constants";
 import { useMenu, useOrders, useSettings, useRestaurant, useAuth, useTables } from "../../contexts";
 import { useToast } from "../../hooks/use-toast";
@@ -564,18 +564,6 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
         <div className="flex-1 flex flex-col overflow-hidden" style={{ borderRight: `1px solid ${COLORS.borderGray}` }}>
           {/* Header Row: Back + Filters + Action Icons */}
           <div className="px-4 py-3 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
-            {/* Back Button */}
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
-              data-testid="menu-back-btn"
-            >
-              <ChevronLeft className="w-6 h-6" style={{ color: COLORS.primaryOrange }} />
-            </button>
-
-            {/* Divider */}
-            <div className="h-6 w-px" style={{ backgroundColor: COLORS.borderGray }} />
-
             {/* Primary Dietary Filters */}
             <div className="flex items-center gap-2">
               {[
@@ -605,7 +593,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
             {/* Divider */}
             <div className="h-6 w-px" style={{ backgroundColor: COLORS.borderGray }} />
 
-            {/* Action Icons: Transfer, Merge, Notes, Customer */}
+            {/* Action Icons: Transfer, Merge, Notes, Customer, Cancel */}
             <div className="flex items-center gap-1">
               {/* Shift/Transfer Table */}
               {canShiftTable && (
@@ -657,26 +645,33 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                   <UserPlus className="w-5 h-5" style={{ color: customer ? COLORS.primaryGreen : COLORS.grayText }} />
                 </button>
               )}
+
+              {/* Cancel Order/Clear Cart */}
+              {(() => {
+                const hasUnplaced = cartItems.some(i => !i.placed);
+                const hasPlaced = cartItems.some(i => i.placed && i.status !== 'cancelled');
+                if (!hasUnplaced && !hasPlaced) return null;
+                if (!hasUnplaced && hasPlaced && !isOrderCancelAllowed) return null;
+                return (
+                  <button
+                    onClick={() => hasUnplaced
+                      ? setCartItems(prev => prev.filter(i => i.placed))
+                      : setShowCancelOrderModal(true)
+                    }
+                    className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                    title={hasUnplaced ? "Clear unplaced items" : "Cancel Order"}
+                    data-testid="cancel-order-btn"
+                  >
+                    <X className="w-5 h-5" style={{ color: '#EF4444' }} />
+                  </button>
+                );
+              })()}
             </div>
-
-            {/* Spacer */}
-            <div className="flex-1" />
-
-            {/* Add Custom Item */}
-            <button
-              onClick={() => setShowCustomItemModal(true)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
-              style={{ border: `1px solid ${COLORS.borderGray}` }}
-              title="Add Custom Item"
-              data-testid="add-custom-item-btn"
-            >
-              <Plus className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
-            </button>
           </div>
 
-          {/* Search Row */}
-          <div className="px-4 py-3 flex-shrink-0" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
-            <div className="relative">
+          {/* Search Row with Add Custom Item */}
+          <div className="px-4 py-3 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.grayText }} />
               <input
                 data-testid="menu-search-input"
@@ -693,6 +688,17 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                 }}
               />
             </div>
+            
+            {/* Add Custom Item */}
+            <button
+              onClick={() => setShowCustomItemModal(true)}
+              className="p-2.5 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+              style={{ border: `1px solid ${COLORS.borderGray}` }}
+              title="Add Custom Item"
+              data-testid="add-custom-item-btn"
+            >
+              <Plus className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
+            </button>
           </div>
 
           {/* Menu Items - Pill Layout */}
@@ -902,28 +908,6 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
 
                 {/* Spacer */}
                 <div className="flex-1" />
-
-                {/* Cancel Order/Clear Cart - context-aware */}
-                {(() => {
-                  const hasUnplaced = cartItems.some(i => !i.placed);
-                  const hasPlaced = cartItems.some(i => i.placed && i.status !== 'cancelled');
-                  if (!hasUnplaced && !hasPlaced) return null;
-                  // For cancel order (all placed): check permission + cancellation settings
-                  if (!hasUnplaced && hasPlaced && !isOrderCancelAllowed) return null;
-                  return (
-                    <button
-                      onClick={() => hasUnplaced
-                        ? setCartItems(prev => prev.filter(i => i.placed))
-                        : setShowCancelOrderModal(true)
-                      }
-                      className="p-2 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0 flex items-center gap-1"
-                      title={hasUnplaced ? "Clear unplaced items" : "Cancel Order"}
-                      data-testid="cancel-order-btn"
-                    >
-                      <X className="w-5 h-5" style={{ color: '#EF4444' }} />
-                    </button>
-                  );
-                })()}
 
                 {/* Split Bill Button - Only for placed orders with 2+ items */}
                 {placedOrderId && cartItems.filter(i => i.placed).length >= 2 && (
