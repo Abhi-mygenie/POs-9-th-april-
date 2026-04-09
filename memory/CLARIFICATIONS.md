@@ -82,6 +82,37 @@ Table Header: पq piyush ₹1
 | Date | Update |
 |------|--------|
 | 2026-04-10 | Initial creation with dynamic table questions |
+| 2026-04-10 | Added bill collection during preparation clarification |
+
+---
+
+## 5. Bill Collection During Order Preparation
+
+**Question:** Should users be able to collect bill when the order is still in "Preparing" status?
+
+**Context:**
+- Current order status flow: `Preparing (1) → Ready (2) → Served (3)`
+- Screenshot shows order in "Preparing" status with only Print + Ready button visible
+- "Collect Bill" behavior during preparation is unclear
+
+**Options:**
+
+| Option | Behavior | Use Case |
+|--------|----------|----------|
+| A - Strict | Only allow bill after Served | Traditional dine-in, prevent early checkout |
+| **B - Flexible (Recommended)** | Allow bill anytime after order placed | Customer in hurry, prepaid preference, flexibility |
+| C - Configurable | Restaurant setting controls this | Let restaurant decide policy |
+
+**Recommendation:** **Option B (Flexible)**
+
+**Rationale:**
+- Customer may need to leave urgently
+- Some customers prefer paying upfront
+- Prevents blocking scenarios
+- Most POS systems allow bill collection at any stage
+- "Collect Bill" should be available anytime there are placed items
+
+**Pending:** Awaiting confirmation from product/backend team
 
 ---
 
