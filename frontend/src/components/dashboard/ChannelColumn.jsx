@@ -112,11 +112,11 @@ const ChannelColumn = ({
             <span 
               className="text-xs px-2 py-0.5 rounded-full"
               style={{ 
-                backgroundColor: activeCount > 0 ? COLORS.primaryOrange : COLORS.borderGray,
-                color: activeCount > 0 ? 'white' : COLORS.grayText,
+                backgroundColor: COLORS.borderGray,
+                color: COLORS.grayText,
               }}
             >
-              {viewType === 'table' ? `${activeCount}/${totalCount}` : activeCount}
+              {activeCount}
             </span>
           </div>
           {onHideColumn && (
