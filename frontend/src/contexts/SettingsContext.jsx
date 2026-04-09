@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { DEFAULT_PAYMENT_LAYOUT } from '../config/paymentMethods';
 
 // Create Settings Context
 const SettingsContext = createContext(null);
@@ -6,6 +7,7 @@ const SettingsContext = createContext(null);
 // Settings Provider Component
 export const SettingsProvider = ({ children }) => {
   const [cancellationReasons, setCancellationReasonsData] = useState([]);
+  const [paymentLayoutConfig, setPaymentLayoutConfigData] = useState(DEFAULT_PAYMENT_LAYOUT);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Set cancellation reasons (called from LoadingPage)
@@ -14,9 +16,15 @@ export const SettingsProvider = ({ children }) => {
     setIsLoaded(true);
   }, []);
 
+  // Set payment layout config (can be loaded from API or set manually)
+  const setPaymentLayoutConfig = useCallback((config) => {
+    setPaymentLayoutConfigData(config || DEFAULT_PAYMENT_LAYOUT);
+  }, []);
+
   // Clear settings data (on logout)
   const clearSettings = useCallback(() => {
     setCancellationReasonsData([]);
+    setPaymentLayoutConfigData(DEFAULT_PAYMENT_LAYOUT);
     setIsLoaded(false);
   }, []);
 
@@ -39,10 +47,12 @@ export const SettingsProvider = ({ children }) => {
   const value = useMemo(() => ({
     // State
     cancellationReasons,
+    paymentLayoutConfig,
     isLoaded,
     
     // Actions
     setCancellationReasons,
+    setPaymentLayoutConfig,
     clearSettings,
     
     // Helpers
@@ -51,8 +61,10 @@ export const SettingsProvider = ({ children }) => {
     getReasonById,
   }), [
     cancellationReasons,
+    paymentLayoutConfig,
     isLoaded,
     setCancellationReasons,
+    setPaymentLayoutConfig,
     clearSettings,
     getOrderCancellationReasons,
     getItemCancellationReasons,

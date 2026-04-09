@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, CreditCard, Smartphone, Banknote, Split, FileText, Check, ArrowRightLeft, ChevronDown, ChevronUp, BellRing, RefreshCw } from "lucide-react";
 import { COLORS } from "../../constants";
-import { useRestaurant, useTables } from "../../contexts";
+import { useRestaurant, useTables, useSettings } from "../../contexts";
+import { PAYMENT_METHODS, filterLayoutByEnabled, DEFAULT_PAYMENT_LAYOUT } from "../../config/paymentMethods";
+import PaymentMethodButton, { PaymentMethodButtonInline } from "./PaymentMethodButton";
 
 const CollectPaymentPanel = ({ 
   cartItems, 
@@ -16,8 +18,25 @@ const CollectPaymentPanel = ({
   isProcessingPayment = false,
 }) => {
   const customer = passedCustomer;
-  const { discountTypes } = useRestaurant();
+  const { discountTypes, paymentMethods: restaurantPaymentMethods } = useRestaurant();
   const { tables } = useTables();
+  const { paymentLayoutConfig } = useSettings();
+
+  // Check if restaurant has rooms
+  const hasRooms = useMemo(() => 
+    (tables || []).some(t => t.isRoom),
+    [tables]
+  );
+
+  // Get filtered layout based on enabled payment methods
+  const enabledLayout = useMemo(() => 
+    filterLayoutByEnabled(
+      paymentLayoutConfig || DEFAULT_PAYMENT_LAYOUT,
+      restaurantPaymentMethods || {},
+      hasRooms
+    ),
+    [paymentLayoutConfig, restaurantPaymentMethods, hasRooms]
+  );
 
   // Filter out cancelled items for calculations, keep for display
   const activeItems = useMemo(() => 
@@ -825,70 +844,84 @@ const CollectPaymentPanel = ({
             💳 PAYMENT METHOD
           </div>
           
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            {[
-              { id: "cash", icon: Banknote, label: "Cash" },
-              { id: "card", icon: CreditCard, label: "Card" },
-              { id: "upi", icon: Smartphone, label: "UPI" },
-            ].map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => { setPaymentMethod(id); setShowSplit(false); setSplitType(null); }}
-                className="py-3 px-2 rounded-lg border-2 flex flex-col items-center gap-1 transition-colors"
-                style={{
-                  borderColor: paymentMethod === id && !showSplit ? COLORS.primaryGreen : COLORS.borderGray,
-                  backgroundColor: paymentMethod === id && !showSplit ? `${COLORS.primaryGreen}10` : "white",
-                }}
-                data-testid={`payment-${id}-btn`}
-              >
-                <Icon className="w-5 h-5" style={{ color: paymentMethod === id && !showSplit ? COLORS.primaryGreen : COLORS.grayText }} />
-                <span className="text-xs" style={{ color: paymentMethod === id && !showSplit ? COLORS.primaryGreen : COLORS.darkText }}>
-                  {label}
-                </span>
-              </button>
-            ))}
-          </div>
+          {/* Row 1: Primary Payment Methods (from config) */}
+          {enabledLayout.row1.length > 0 && (
+            <div className={`grid gap-2 mb-2`} style={{ gridTemplateColumns: `repeat(${Math.min(enabledLayout.row1.length, 3)}, 1fr)` }}>
+              {enabledLayout.row1.map((methodId) => {
+                const method = PAYMENT_METHODS[methodId];
+                if (!method) return null;
+                const Icon = method.icon;
+                const isSelected = paymentMethod === methodId && !showSplit;
+                
+                return (
+                  <button
+                    key={methodId}
+                    onClick={() => { setPaymentMethod(methodId); setShowSplit(false); setSplitType(null); }}
+                    className="py-3 px-2 rounded-lg border-2 flex flex-col items-center gap-1 transition-colors"
+                    style={{
+                      borderColor: isSelected ? COLORS.primaryGreen : COLORS.borderGray,
+                      backgroundColor: isSelected ? `${COLORS.primaryGreen}10` : "white",
+                    }}
+                    data-testid={`payment-${methodId}-btn`}
+                  >
+                    <Icon className="w-5 h-5" style={{ color: isSelected ? COLORS.primaryGreen : COLORS.grayText }} />
+                    <span className="text-xs" style={{ color: isSelected ? COLORS.primaryGreen : COLORS.darkText }}>
+                      {method.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
           
-          <div className={isRoom ? "" : "grid grid-cols-3 gap-2"}>
-            <button
-              onClick={() => { setShowSplit(!showSplit); if (!showSplit) setSplitType("payment"); }}
-              className="py-3 px-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors w-full"
-              style={{
-                borderColor: showSplit ? COLORS.primaryGreen : COLORS.borderGray,
-                backgroundColor: showSplit ? `${COLORS.primaryGreen}10` : "white",
-              }}
-              data-testid="payment-split-btn"
-            >
-              <Split className="w-4 h-4" style={{ color: showSplit ? COLORS.primaryGreen : COLORS.grayText }} />
-              <span className="text-xs" style={{ color: showSplit ? COLORS.primaryGreen : COLORS.darkText }}>Split</span>
-            </button>
-            {!isRoom && (
-            <button
-              onClick={() => { setPaymentMethod("credit"); setShowSplit(false); setSplitType(null); }}
-              className="py-3 px-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors"
-              style={{
-                borderColor: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.borderGray,
-                backgroundColor: paymentMethod === "credit" && !showSplit ? `${COLORS.primaryGreen}10` : "white",
-              }}
-              data-testid="payment-credit-btn"
-            >
-              <FileText className="w-4 h-4" style={{ color: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.grayText }} />
-              <span className="text-xs" style={{ color: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.darkText }}>Credit</span>
-            </button>
+          {/* Row 2: Actions - Split, Credit, ToRoom (from config, with special handling) */}
+          <div className={isRoom ? "" : `grid gap-2`} style={{ gridTemplateColumns: isRoom ? undefined : `repeat(${Math.min(enabledLayout.row2.filter(id => id !== 'transferToRoom' || !isRoom).length, 3)}, 1fr)` }}>
+            {/* Split Button - Special handling */}
+            {enabledLayout.row2.includes('split') && (
+              <button
+                onClick={() => { setShowSplit(!showSplit); if (!showSplit) setSplitType("payment"); }}
+                className="py-3 px-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors w-full"
+                style={{
+                  borderColor: showSplit ? COLORS.primaryGreen : COLORS.borderGray,
+                  backgroundColor: showSplit ? `${COLORS.primaryGreen}10` : "white",
+                }}
+                data-testid="payment-split-btn"
+              >
+                <Split className="w-4 h-4" style={{ color: showSplit ? COLORS.primaryGreen : COLORS.grayText }} />
+                <span className="text-xs" style={{ color: showSplit ? COLORS.primaryGreen : COLORS.darkText }}>Split</span>
+              </button>
             )}
-            {!isRoom && (
-            <button
-              onClick={() => { setPaymentMethod("transferToRoom"); setShowSplit(false); setSplitType(null); }}
-              className="py-3 px-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors"
-              style={{
-                borderColor: paymentMethod === "transferToRoom" && !showSplit ? COLORS.primaryOrange : COLORS.borderGray,
-                backgroundColor: paymentMethod === "transferToRoom" && !showSplit ? `${COLORS.primaryOrange}10` : "white",
-              }}
-              data-testid="payment-transfer-room-btn"
-            >
-              <ArrowRightLeft className="w-4 h-4" style={{ color: paymentMethod === "transferToRoom" && !showSplit ? COLORS.primaryOrange : COLORS.grayText }} />
-              <span className="text-xs" style={{ color: paymentMethod === "transferToRoom" && !showSplit ? COLORS.primaryOrange : COLORS.darkText }}>To Room</span>
-            </button>
+            
+            {/* Credit Button */}
+            {enabledLayout.row2.includes('credit') && !isRoom && (
+              <button
+                onClick={() => { setPaymentMethod("credit"); setShowSplit(false); setSplitType(null); }}
+                className="py-3 px-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors"
+                style={{
+                  borderColor: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.borderGray,
+                  backgroundColor: paymentMethod === "credit" && !showSplit ? `${COLORS.primaryGreen}10` : "white",
+                }}
+                data-testid="payment-credit-btn"
+              >
+                <FileText className="w-4 h-4" style={{ color: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.grayText }} />
+                <span className="text-xs" style={{ color: paymentMethod === "credit" && !showSplit ? COLORS.primaryGreen : COLORS.darkText }}>Credit</span>
+              </button>
+            )}
+            
+            {/* To Room Button - Special handling, only for non-room orders */}
+            {enabledLayout.row2.includes('transferToRoom') && !isRoom && (
+              <button
+                onClick={() => { setPaymentMethod("transferToRoom"); setShowSplit(false); setSplitType(null); }}
+                className="py-3 px-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors"
+                style={{
+                  borderColor: paymentMethod === "transferToRoom" && !showSplit ? COLORS.primaryOrange : COLORS.borderGray,
+                  backgroundColor: paymentMethod === "transferToRoom" && !showSplit ? `${COLORS.primaryOrange}10` : "white",
+                }}
+                data-testid="payment-transfer-room-btn"
+              >
+                <ArrowRightLeft className="w-4 h-4" style={{ color: paymentMethod === "transferToRoom" && !showSplit ? COLORS.primaryOrange : COLORS.grayText }} />
+                <span className="text-xs" style={{ color: paymentMethod === "transferToRoom" && !showSplit ? COLORS.primaryOrange : COLORS.darkText }}>To Room</span>
+              </button>
             )}
           </div>
 
