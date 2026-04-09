@@ -611,35 +611,6 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
               })}
             </div>
 
-            {/* Divider */}
-            <div className="h-6 w-px" style={{ backgroundColor: COLORS.borderGray }} />
-
-            {/* Secondary Dietary Filters */}
-            <div className="flex items-center gap-2 overflow-x-auto">
-              {[
-                { key: "glutenFree", label: "Gluten Free" },
-                { key: "jain", label: "Jain" },
-                { key: "vegan", label: "Vegan" }
-              ].map(filter => {
-                const isActive = secondaryFilters[filter.key];
-                return (
-                  <button
-                    key={filter.key}
-                    data-testid={`filter-${filter.key}`}
-                    onClick={() => toggleSecondaryFilter(filter.key)}
-                    className="px-4 py-3 rounded-full text-xs font-medium whitespace-nowrap transition-colors"
-                    style={{
-                      backgroundColor: isActive ? COLORS.primaryGreen : "transparent",
-                      color: isActive ? "white" : COLORS.grayText,
-                      border: `1px solid ${isActive ? COLORS.primaryGreen : COLORS.borderGray}`,
-                    }}
-                  >
-                    {filter.label}
-                  </button>
-                );
-              })}
-            </div>
-
             {/* Spacer */}
             <div className="flex-1" />
 
