@@ -540,7 +540,7 @@ const OrderCard = ({
               <button
                 data-testid={`ready-btn-${orderId}`}
                 className="min-h-[44px] px-6 text-sm font-bold rounded-lg"
-                style={{ backgroundColor: "#FFF3E8", color: COLORS.primaryOrange }}
+                style={{ backgroundColor: "#FFF3E8", color: COLORS.primaryOrange, border: `1px solid ${COLORS.primaryOrange}` }}
                 onClick={() => onMarkReady?.(order)}
               >
                 Ready
@@ -550,7 +550,7 @@ const OrderCard = ({
               <button
                 data-testid={`serve-btn-${orderId}`}
                 className="min-h-[44px] px-6 text-sm font-bold rounded-lg"
-                style={{ backgroundColor: "#E8F5E9", color: COLORS.primaryGreen }}
+                style={{ backgroundColor: "#E8F5E9", color: COLORS.primaryGreen, border: `1px solid ${COLORS.primaryGreen}` }}
                 onClick={() => onMarkServed?.(order)}
               >
                 Serve

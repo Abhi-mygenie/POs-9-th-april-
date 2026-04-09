@@ -175,6 +175,7 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
                       onClick={() => onMarkReady?.(table)}
                       backgroundColor="#FFF3E8"
                       textColor={COLORS.primaryOrange}
+                      borderColor={COLORS.primaryOrange}
                       testId={`ready-btn-${table.id}`}
                       ariaLabel={`Mark order ready for table ${table.id}`}
                       fullWidth={false}
@@ -198,6 +199,7 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
                       onClick={() => onMarkServed?.(table)}
                       backgroundColor="#E8F5E9"
                       textColor={COLORS.primaryGreen}
+                      borderColor={COLORS.primaryGreen}
                       testId={`serve-btn-${table.id}`}
                       ariaLabel={`Mark order served for table ${table.id}`}
                       fullWidth={false}
