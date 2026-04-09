@@ -586,20 +586,9 @@ const Header = ({
           </div>
         </div>
 
-        {/* Right Section - Online Status + Add Button */}
+        {/* Right Section - Add Button + Online Status */}
         <div className="flex items-center gap-3">
-          {/* Online/Offline Status - Just circle indicator */}
-          <div
-            data-testid="online-status"
-            title={isOnline ? "Online" : "Offline"}
-          >
-            <div 
-              className="w-2.5 h-2.5 rounded-full" 
-              style={{ backgroundColor: isOnline ? "#4CAF50" : "#F44336" }} 
-            />
-          </div>
-
-          {/* Add Order Button - Extreme Right */}
+          {/* Add Order Button */}
           <button
             data-testid="add-table-btn"
             className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg transition-colors hover:opacity-80"
@@ -609,6 +598,17 @@ const Header = ({
             <PlusSquare className="w-4 h-4" />
             <span className="text-sm font-medium">Add</span>
           </button>
+
+          {/* Online/Offline Status - Circle indicator after Add button */}
+          <div
+            data-testid="online-status"
+            title={isOnline ? "Online" : "Offline"}
+          >
+            <div 
+              className="w-2.5 h-2.5 rounded-full" 
+              style={{ backgroundColor: isOnline ? "#4CAF50" : "#F44336" }} 
+            />
+          </div>
         </div>
       </div>
     </header>
