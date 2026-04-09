@@ -645,27 +645,6 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                   <UserPlus className="w-5 h-5" style={{ color: customer ? COLORS.primaryGreen : COLORS.grayText }} />
                 </button>
               )}
-
-              {/* Cancel Order/Clear Cart */}
-              {(() => {
-                const hasUnplaced = cartItems.some(i => !i.placed);
-                const hasPlaced = cartItems.some(i => i.placed && i.status !== 'cancelled');
-                if (!hasUnplaced && !hasPlaced) return null;
-                if (!hasUnplaced && hasPlaced && !isOrderCancelAllowed) return null;
-                return (
-                  <button
-                    onClick={() => hasUnplaced
-                      ? setCartItems(prev => prev.filter(i => i.placed))
-                      : setShowCancelOrderModal(true)
-                    }
-                    className="p-2 rounded-lg hover:bg-red-50 transition-colors"
-                    title={hasUnplaced ? "Clear unplaced items" : "Cancel Order"}
-                    data-testid="cancel-order-btn"
-                  >
-                    <X className="w-5 h-5" style={{ color: '#EF4444' }} />
-                  </button>
-                );
-              })()}
             </div>
           </div>
 
@@ -910,16 +889,48 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                 {/* Spacer */}
                 <div className="flex-1" />
 
+                {/* Cancel Order/Clear Cart - Prominent styling */}
+                {(() => {
+                  const hasUnplaced = cartItems.some(i => !i.placed);
+                  const hasPlaced = cartItems.some(i => i.placed && i.status !== 'cancelled');
+                  if (!hasUnplaced && !hasPlaced) return null;
+                  if (!hasUnplaced && hasPlaced && !isOrderCancelAllowed) return null;
+                  return (
+                    <button
+                      onClick={() => hasUnplaced
+                        ? setCartItems(prev => prev.filter(i => i.placed))
+                        : setShowCancelOrderModal(true)
+                      }
+                      className="px-3 py-2 rounded-lg transition-colors flex-shrink-0 flex items-center gap-1.5 font-medium text-sm"
+                      style={{ 
+                        backgroundColor: '#FEE2E2',
+                        color: '#DC2626',
+                        border: '1px solid #FECACA'
+                      }}
+                      title={hasUnplaced ? "Clear unplaced items" : "Cancel Order"}
+                      data-testid="cancel-order-btn"
+                    >
+                      <X className="w-4 h-4" />
+                      <span>Cancel</span>
+                    </button>
+                  );
+                })()}
+
                 {/* Split Bill Button - Only for placed orders with 2+ items */}
                 {placedOrderId && cartItems.filter(i => i.placed).length >= 2 && (
                   <button
                     onClick={() => setShowSplitBillModal(true)}
-                    className="p-2 rounded-lg hover:bg-orange-50 transition-colors flex-shrink-0"
-                    style={{ color: COLORS.primaryOrange }}
+                    className="px-3 py-2 rounded-lg transition-colors flex-shrink-0 flex items-center gap-1.5 font-medium text-sm"
+                    style={{ 
+                      backgroundColor: '#FFF7ED',
+                      color: COLORS.primaryOrange,
+                      border: '1px solid #FED7AA'
+                    }}
                     title="Split Bill"
                     data-testid="split-bill-btn"
                   >
-                    <Scissors className="w-5 h-5" />
+                    <Scissors className="w-4 h-4" />
+                    <span>Split</span>
                   </button>
                 )}
               </div>
