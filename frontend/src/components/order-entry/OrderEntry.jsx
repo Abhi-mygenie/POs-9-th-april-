@@ -579,7 +579,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
 
         {/* MIDDLE PANEL - Menu Items */}
         <div className="flex-1 flex flex-col overflow-hidden" style={{ borderRight: `1px solid ${COLORS.borderGray}` }}>
-          {/* Single Compact Header Row: Search + Add Custom + Action Icons */}
+          {/* Single Compact Header Row: Search + Action Icons */}
           <div className="px-4 py-3 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
             {/* Search Input - Limited width */}
             <div className="relative flex-1 max-w-sm">
@@ -600,23 +600,23 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                 }}
               />
             </div>
-            
-            {/* Add Custom Item */}
-            <button
-              onClick={() => setShowCustomItemModal(true)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
-              style={{ border: `1px solid ${COLORS.borderGray}` }}
-              title="Add Custom Item"
-              data-testid="add-custom-item-btn"
-            >
-              <Plus className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
-            </button>
 
             {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Action Icons: Shift, Merge, Notes, Customer - More spacing for touch */}
+            {/* Action Icons: Add Custom, Shift, Merge, Notes, Customer */}
             <div className="flex items-center gap-3">
+              {/* Add Custom Item - First icon */}
+              <button
+                onClick={() => setShowCustomItemModal(true)}
+                className="p-2.5 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+                style={{ border: `1px solid ${COLORS.borderGray}` }}
+                title="Add Custom Item"
+                data-testid="add-custom-item-btn"
+              >
+                <Plus className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
+              </button>
+
               {/* Shift/Transfer Table */}
               {canShiftTable && (
                 <button
