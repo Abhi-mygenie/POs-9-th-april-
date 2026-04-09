@@ -1,5 +1,96 @@
 # Changelog
 
+## Apr 10, 2026 — Session 7 (UX Overhaul, Compact Headers, Order Timeline)
+
+### Initial Setup
+- Cloned from `v3--payments-` branch
+- Merged `API_MAPPING.md` into `API_DOCUMENT_V2.md`
+
+### Default View Settings — COMPLETE ✅
+- Station View: Default OFF on login
+- Sidebar: Default collapsed on login
+- Dashboard: Default to Status view (not Channel)
+- **Files Modified**: `StationContext.jsx`, `DashboardPage.jsx`
+
+### Login Page Redesign — COMPLETE ✅
+- Title: "Streamlined Hospitality." (orange) + "Exceptional Experience." (green)
+- Footer: "© Mygenie 2025. HOSIGENIE HOSPITALITY SERVICES PRIVATE LIMITED. All Rights Reserved."
+- Removed "Request for Demo" button and "OR" divider
+- **Files Modified**: `LoginPage.jsx`
+
+### Loading Page Update — COMPLETE ✅
+- Removed "Setting up your POS..." title
+- Changed to "Please wait while we set up your system"
+- **Files Modified**: `LoadingPage.jsx`
+
+### Header Redesign — COMPLETE ✅
+- Filter pills: Changed to subtle gray style (removed orange)
+- Search box: Smaller width (`w-48`/`w-64`) and shifted right
+- ADD button: Moved to extreme right
+- Online indicator: Positioned after ADD button
+- Removed Table/Status dropdowns (moved to sidebar)
+- **Files Modified**: `Header.jsx`
+
+### Sidebar View Toggles — COMPLETE ✅
+- Added View toggles: Grid (Table) / List (Order) icons
+- Added Group toggles: Columns (Channel) / Rows (Status) icons
+- Active state: Green highlight background
+- Works in collapsed and expanded modes
+- **Files Modified**: `Sidebar.jsx`
+
+### Channel Icons on All Cards — COMPLETE ✅
+- Added Utensils icon for Dine-In and Walk-In
+- Added DoorOpen icon for Room
+- Delivery (Bike) and TakeAway (ShoppingBag) already present
+- Icons now show in both Table View and Order View
+- **Files Modified**: `TableCard.jsx`, `OrderCard.jsx`, `ChannelColumn.jsx`
+
+### Ready/Serve Button Borders — COMPLETE ✅
+- Ready button: Orange text + cream bg + orange border
+- Serve button: Green text + light green bg + green border
+- **Files Modified**: `TableCard.jsx`, `OrderCard.jsx`, `TextButton.jsx`
+
+### Order Entry Compact Header — COMPLETE ✅
+- Merged 2 header rows into 1 compact row
+- Removed Veg/Non-Veg/Egg filters
+- Removed category search from CategoryPanel
+- Prominent back button (orange filled icon)
+- Search box smaller with proper spacing
+- Out of menu (+) as first action icon in group
+- **Files Modified**: `OrderEntry.jsx`, `CategoryPanel.jsx`
+
+### Cart Panel KOT/Bill Logic — COMPLETE ✅
+- Re-Print: Only shows for placed items
+- KOT/Bill checkboxes: Only show for new (unplaced) items
+- Split `RePrintButton` into `RePrintOnlyButton` and `KotBillCheckboxes`
+- **Files Modified**: `CartPanel.jsx`, `RePrintButton.jsx`
+
+### Dynamic Tables Setting — COMPLETE ✅
+- Added `enableDynamicTables` setting (default: OFF)
+- Table name input only shows when enabled
+- Toggle in Settings > General > "Dynamic Table Names"
+- Persisted in localStorage
+- **Files Modified**: `CartPanel.jsx`, `SettingsContext.jsx`, `ViewEditViews.jsx`
+
+### Order Timeline Feature — COMPLETE ✅
+- **NEW COMPONENT**: `OrderTimeline.jsx` for compact dot timeline
+- Format: `●──14m──●──3m──●` (Placed → Ready → Served)
+- Filled dots = completed stages, Empty dots = pending
+- Duration shown between stages
+- Added to Order Card headers in Order View
+- Stage-specific time in Table View cards
+- Added `readyAt`, `servedAt` to order transform (computed from items)
+- **Files Created**: `OrderTimeline.jsx`
+- **Files Modified**: `OrderCard.jsx`, `TableCard.jsx`, `orderTransform.js`, `DashboardPage.jsx`
+
+### Search Improvements (Partial)
+- Fixed null check in search function
+- Added `fOrderStatus` to `orderItemsByTableId`
+- **Note**: Dynamic table search still pending clarification
+- **Files Modified**: `DashboardPage.jsx`, `OrderContext.jsx`
+
+---
+
 ## Apr 9, 2026 — Session 6 (Header UX, Layout Settings, Auto Print, Split Bill)
 
 ### Split Bill Feature — COMPLETE ✅

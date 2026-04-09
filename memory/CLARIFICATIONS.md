@@ -116,4 +116,21 @@ Table Header: पq piyush ₹1
 
 ---
 
+## 6. Order Timeline - API Timestamps (RESOLVED)
+
+**Status:** ✅ Implemented
+
+**Confirmed:** API provides timestamps at item level (`ready_at`, `serve_at`).
+
+**Implementation:** Order-level timestamps computed from items:
+- `readyAt` = First item ready timestamp
+- `servedAt` = Last item served timestamp
+
+**Files Updated:**
+- `orderTransform.js` - Added computed timestamps
+- `OrderTimeline.jsx` - New component for dot timeline
+- `TableCard.jsx` - Stage-specific time display
+
+---
+
 *Please update this document with answers or direct to relevant API documentation.*
