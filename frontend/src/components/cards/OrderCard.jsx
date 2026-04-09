@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, X, ChevronDown, ChevronUp, MapPin, Clock, Printer, ShoppingBag, Bike, Circle, CheckCircle2, Check, FileText, GitMerge, ArrowLeftRight, CornerRightUp, Loader2 } from "lucide-react";
+import { User, X, ChevronDown, ChevronUp, MapPin, Clock, Printer, ShoppingBag, Bike, Utensils, DoorOpen, Circle, CheckCircle2, Check, FileText, GitMerge, ArrowLeftRight, CornerRightUp, Loader2 } from "lucide-react";
 import { COLORS, SOURCE_COLORS } from "../../constants";
 
 /**
@@ -124,6 +124,8 @@ const OrderCard = ({
   const renderOrderTypeIcon = () => {
     if (isTakeAway) return <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />;
     if (isDelivery) return <Bike className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />;
+    if (isDineIn) return <Utensils className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />;
+    if (isRoom) return <DoorOpen className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />;
     return null;
   };
 
@@ -175,15 +177,10 @@ const OrderCard = ({
           {/* Logo */}
           {renderLogo()}
 
-          {/* Order Type Icon + Label (skip for Dine-In) */}
-          {!isDineIn && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {renderOrderTypeIcon()}
-              <span className="text-xs font-semibold" style={{ color: COLORS.darkText }}>
-                {getOrderTypeLabel()}
-              </span>
-            </div>
-          )}
+          {/* Order Type Icon (shown for ALL order types) */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {renderOrderTypeIcon()}
+          </div>
 
           {/* Table/Customer Name + Time */}
           {getDisplayName() && (
