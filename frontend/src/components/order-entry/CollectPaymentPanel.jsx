@@ -18,7 +18,7 @@ const CollectPaymentPanel = ({
   isProcessingPayment = false,
 }) => {
   const customer = passedCustomer;
-  const { discountTypes, paymentMethods: restaurantPaymentMethods } = useRestaurant();
+  const { discountTypes, paymentMethods: restaurantPaymentMethods, paymentTypes: restaurantPaymentTypes } = useRestaurant();
   const { tables } = useTables();
   const { paymentLayoutConfig } = useSettings();
 
@@ -37,6 +37,15 @@ const CollectPaymentPanel = ({
     ),
     [paymentLayoutConfig, restaurantPaymentMethods, hasRooms]
   );
+
+  // DEBUG LOGS - Payment Configuration
+  console.log('[CollectPaymentPanel] Payment Debug:', {
+    restaurantPaymentMethods,
+    restaurantPaymentTypes,
+    paymentLayoutConfig,
+    hasRooms,
+    enabledLayout,
+  });
 
   // Filter out cancelled items for calculations, keep for display
   const activeItems = useMemo(() => 
