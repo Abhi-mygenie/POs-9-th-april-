@@ -672,19 +672,19 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
           {/* Search Row with Add Custom Item */}
           <div className="px-4 py-4 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.grayText }} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.primaryOrange }} />
               <input
                 data-testid="menu-search-input"
                 type="text"
                 placeholder="Search items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border focus:outline-none focus:ring-2"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border-2 focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: "#f9fafb", 
+                  backgroundColor: "white", 
                   color: COLORS.darkText,
-                  borderColor: COLORS.borderGray,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  borderColor: COLORS.primaryOrange,
+                  boxShadow: "0 2px 4px rgba(249, 115, 22, 0.15)",
                   fontSize: "13px"
                 }}
               />
