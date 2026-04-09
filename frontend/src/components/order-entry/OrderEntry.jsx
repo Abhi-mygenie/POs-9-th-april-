@@ -581,8 +581,8 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
         <div className="flex-1 flex flex-col overflow-hidden" style={{ borderRight: `1px solid ${COLORS.borderGray}` }}>
           {/* Single Compact Header Row: Search + Add Custom + Action Icons */}
           <div className="px-4 py-3 flex-shrink-0 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
-            {/* Search Input */}
-            <div className="relative flex-1">
+            {/* Search Input - Limited width */}
+            <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.primaryOrange }} />
               <input
                 data-testid="menu-search-input"
@@ -612,13 +612,16 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
               <Plus className="w-5 h-5" style={{ color: COLORS.primaryOrange }} />
             </button>
 
-            {/* Action Icons: Shift, Merge, Notes, Customer */}
-            <div className="flex items-center gap-1">
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Action Icons: Shift, Merge, Notes, Customer - More spacing for touch */}
+            <div className="flex items-center gap-3">
               {/* Shift/Transfer Table */}
               {canShiftTable && (
                 <button
                   onClick={() => setShowShiftModal(true)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
                   title="Shift Table"
                   data-testid="shift-table-btn"
                 >
@@ -630,7 +633,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
               {canMergeOrder && (
                 <button
                   onClick={() => setShowMergeModal(true)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
                   title="Merge Tables"
                   data-testid="merge-tables-btn"
                 >
@@ -640,7 +643,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
 
               {/* Order Notes */}
               <button
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
+                className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors relative"
                 title="Order Notes"
                 onClick={() => setShowNotesModal(true)}
                 data-testid="order-notes-btn"
@@ -656,7 +659,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
               {/* Customer Info */}
               {canCustomerManage && (
                 <button 
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors" 
+                  className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors" 
                   title="Customer Info"
                   onClick={() => setShowCustomerModal(true)}
                   data-testid="customer-info-btn"
