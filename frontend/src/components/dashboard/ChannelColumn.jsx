@@ -179,7 +179,7 @@ const ChannelColumn = ({
                 <OrderCard
                   key={key}
                   order={order}
-                  orderType={channel.id}
+                  orderType={item.orderType || channel.id}
                   tableLabel={item.label || item.tableNumber}
                   isSnoozed={snoozedOrders?.has(item.id)}
                   isEngaged={isTableEngaged?.(item.tableId)}

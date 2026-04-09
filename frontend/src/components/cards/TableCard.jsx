@@ -63,7 +63,7 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
           <div className="flex items-center gap-2 min-w-0">
             {table.orderType === 'takeAway' && <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />}
             {table.orderType === 'delivery' && <Bike className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />}
-            {table.orderType === 'dineIn' && <Utensils className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />}
+            {(table.orderType === 'dineIn' || table.orderType === 'walkIn') && <Utensils className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />}
             {table.orderType === 'room' && <DoorOpen className="w-3.5 h-3.5 flex-shrink-0" style={{ color: COLORS.primaryOrange }} />}
             <span className="text-sm font-bold truncate" title={table.label || table.id}>{table.label || table.id}</span>
           </div>
