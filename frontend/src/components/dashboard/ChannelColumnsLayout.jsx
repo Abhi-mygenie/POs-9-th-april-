@@ -2,10 +2,29 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { COLORS } from '../../constants';
 import ChannelColumn from './ChannelColumn';
 
-// Default max columns per view type (fallback before measurement)
-const getDefaultMaxColumns = (viewType) => {
-  const cols = viewType === 'table' ? 2 : 1;
-  return { dineIn: cols, takeAway: cols, delivery: cols, room: cols };
+// LocalStorage keys for column layout (same as StatusConfigPage)
+const LAYOUT_TABLE_VIEW_KEY = 'mygenie_layout_table_view';
+const LAYOUT_ORDER_VIEW_KEY = 'mygenie_layout_order_view';
+
+// Default max columns per view type (fallback if nothing in localStorage)
+const DEFAULT_LAYOUT_TABLE = { dineIn: 2, takeAway: 2, delivery: 2, room: 2 };
+const DEFAULT_LAYOUT_ORDER = { dineIn: 1, takeAway: 1, delivery: 1, room: 1 };
+
+// Read layout from localStorage with fallback
+const getLayoutFromStorage = (viewType) => {
+  const key = viewType === 'table' ? LAYOUT_TABLE_VIEW_KEY : LAYOUT_ORDER_VIEW_KEY;
+  const defaults = viewType === 'table' ? DEFAULT_LAYOUT_TABLE : DEFAULT_LAYOUT_ORDER;
+  
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return { ...defaults, ...parsed };
+    }
+  } catch (e) {
+    console.error('Failed to parse layout from localStorage:', e);
+  }
+  return defaults;
 };
 
 // Channel order for arrow navigation
@@ -56,14 +75,13 @@ const ChannelColumnsLayout = ({
 }) => {
   const containerRef = useRef(null);
   
-  // Start with static fallback, smart defaults calculated after mount
-  const [maxColumns, setMaxColumns] = useState(() => getDefaultMaxColumns(viewType));
-  const initializedForViewRef = useRef(null);
+  // Load defaults from localStorage (or fallback to hardcoded defaults)
+  const [maxColumns, setMaxColumns] = useState(() => getLayoutFromStorage(viewType));
 
-  // Reset initialization flag when viewType changes so it recalculates
+  // Reset to localStorage values when viewType changes
   useEffect(() => {
-    initializedForViewRef.current = null;
-    setMaxColumns(getDefaultMaxColumns(viewType));
+    setMaxColumns(getLayoutFromStorage(viewType));
+    console.log(`%c[Layout] viewType changed to "${viewType}", loaded from localStorage`, 'color: #f59e0b; font-weight: bold;');
   }, [viewType]);
 
   // Clean up stale localStorage from previous implementation
@@ -75,47 +93,6 @@ const ChannelColumnsLayout = ({
   const enabledChannels = useMemo(() => {
     return channels.filter(c => c.enabled !== false);
   }, [channels]);
-
-  // Smart default calculation: measure container, distribute width among visible channels
-  // Placed AFTER enabledChannels declaration
-  useEffect(() => {
-    // Skip if already calculated for this viewType
-    if (initializedForViewRef.current === viewType) return;
-
-    const visibleChannels = enabledChannels.filter(c => (c.items?.length || 0) > 0);
-
-    // No channels with items yet — use static defaults
-    if (visibleChannels.length === 0) {
-      setMaxColumns(getDefaultMaxColumns(viewType));
-      initializedForViewRef.current = viewType;
-      return;
-    }
-
-    // Measure after DOM settles
-    const timer = setTimeout(() => {
-      const el = containerRef.current;
-      if (!el) return;
-
-      const containerWidth = el.clientWidth;
-      const visibleCount = visibleChannels.length;
-      const cardUnit = viewType === 'table' ? TABLE_CARD_UNIT : ORDER_CARD_UNIT;
-
-      const totalPadding = visibleCount * CHANNEL_PADDING;
-      const available = containerWidth - totalPadding;
-      const perChannel = available / visibleCount;
-      const cols = Math.max(1, Math.floor(perChannel / cardUnit));
-
-      const defaults = {};
-      CHANNEL_ORDER.forEach(id => { defaults[id] = cols; });
-
-      console.log(`%c[SmartDefault] view=${viewType}, container=${containerWidth}px, channels=${visibleCount}, cols=${cols}`, 'color: #f59e0b; font-weight: bold;');
-
-      setMaxColumns(defaults);
-      initializedForViewRef.current = viewType;
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [viewType, enabledChannels]);
 
   // Calculate actual columns for each channel based on order count
   const getActualColumns = useCallback((channelId, orderCount) => {

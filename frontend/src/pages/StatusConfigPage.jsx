@@ -15,6 +15,14 @@ const STATION_VIEW_STORAGE_KEY = 'mygenie_station_view_config';
 // LocalStorage key for channel visibility
 const CHANNEL_VISIBILITY_STORAGE_KEY = 'mygenie_channel_visibility';
 
+// LocalStorage keys for column layout
+const LAYOUT_TABLE_VIEW_KEY = 'mygenie_layout_table_view';
+const LAYOUT_ORDER_VIEW_KEY = 'mygenie_layout_order_view';
+
+// Default column layout configs
+const DEFAULT_LAYOUT_TABLE = { dineIn: 2, takeAway: 2, delivery: 2, room: 2 };
+const DEFAULT_LAYOUT_ORDER = { dineIn: 1, takeAway: 1, delivery: 1, room: 1 };
+
 // Station icons mapping
 const STATION_ICONS = {
   KDS: '🍳',
@@ -91,6 +99,10 @@ const StatusConfigPage = () => {
   // Channel visibility config state
   const [channelConfig, setChannelConfig] = useState(DEFAULT_CHANNEL_CONFIG);
 
+  // Column layout config state
+  const [layoutTableView, setLayoutTableView] = useState(DEFAULT_LAYOUT_TABLE);
+  const [layoutOrderView, setLayoutOrderView] = useState(DEFAULT_LAYOUT_ORDER);
+
   // Load from localStorage on mount
   useEffect(() => {
     // Load status config
@@ -125,6 +137,27 @@ const StatusConfigPage = () => {
         setChannelConfig({ ...DEFAULT_CHANNEL_CONFIG, ...parsed });
       } catch (e) {
         console.error('Failed to parse stored channel visibility config:', e);
+      }
+    }
+
+    // Load column layout configs
+    const storedLayoutTable = localStorage.getItem(LAYOUT_TABLE_VIEW_KEY);
+    if (storedLayoutTable) {
+      try {
+        const parsed = JSON.parse(storedLayoutTable);
+        setLayoutTableView({ ...DEFAULT_LAYOUT_TABLE, ...parsed });
+      } catch (e) {
+        console.error('Failed to parse stored table view layout:', e);
+      }
+    }
+
+    const storedLayoutOrder = localStorage.getItem(LAYOUT_ORDER_VIEW_KEY);
+    if (storedLayoutOrder) {
+      try {
+        const parsed = JSON.parse(storedLayoutOrder);
+        setLayoutOrderView({ ...DEFAULT_LAYOUT_ORDER, ...parsed });
+      } catch (e) {
+        console.error('Failed to parse stored order view layout:', e);
       }
     }
   }, []);
@@ -167,6 +200,8 @@ const StatusConfigPage = () => {
     setEnabledStatuses(DEFAULT_ENABLED);
     setStationViewConfig(DEFAULT_STATION_VIEW_CONFIG);
     setChannelConfig(DEFAULT_CHANNEL_CONFIG);
+    setLayoutTableView(DEFAULT_LAYOUT_TABLE);
+    setLayoutOrderView(DEFAULT_LAYOUT_ORDER);
     setHasChanges(true);
   };
 
@@ -234,15 +269,44 @@ const StatusConfigPage = () => {
     setHasChanges(true);
   };
 
+  // Update column count for a channel in Table View
+  const updateTableViewColumns = (channelId, delta) => {
+    setLayoutTableView(prev => {
+      const current = prev[channelId] ?? 2;
+      const newVal = Math.max(1, current + delta); // Min 1
+      return { ...prev, [channelId]: newVal };
+    });
+    setHasChanges(true);
+  };
+
+  // Update column count for a channel in Order View
+  const updateOrderViewColumns = (channelId, delta) => {
+    setLayoutOrderView(prev => {
+      const current = prev[channelId] ?? 1;
+      const newVal = Math.max(1, current + delta); // Min 1
+      return { ...prev, [channelId]: newVal };
+    });
+    setHasChanges(true);
+  };
+
+  // Reset layout to defaults
+  const resetLayout = () => {
+    setLayoutTableView(DEFAULT_LAYOUT_TABLE);
+    setLayoutOrderView(DEFAULT_LAYOUT_ORDER);
+    setHasChanges(true);
+  };
+
   // Save to localStorage
   const saveConfiguration = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(enabledStatuses));
     localStorage.setItem(STATION_VIEW_STORAGE_KEY, JSON.stringify(stationViewConfig));
     localStorage.setItem(CHANNEL_VISIBILITY_STORAGE_KEY, JSON.stringify(channelConfig));
+    localStorage.setItem(LAYOUT_TABLE_VIEW_KEY, JSON.stringify(layoutTableView));
+    localStorage.setItem(LAYOUT_ORDER_VIEW_KEY, JSON.stringify(layoutOrderView));
     setHasChanges(false);
     toast({
       title: "Configuration saved",
-      description: `${enabledStatuses.length} status(es) enabled. ${stationViewConfig.enabled ? `Station View ON (${stationViewConfig.stations.length} stations)` : 'Station View OFF'}. ${channelConfig.enabled ? `Channel Override ON (${channelConfig.channels.length} channels)` : 'Channel Override OFF'}`,
+      description: `Settings saved. Layout: Table(${Object.values(layoutTableView).join('/')}) Order(${Object.values(layoutOrderView).join('/')})`,
     });
   };
 
@@ -655,6 +719,149 @@ const StatusConfigPage = () => {
                   </div>
                 </>
               )}
+            </div>
+
+            {/* ============== DEFAULT COLUMN LAYOUT ============== */}
+            <div className="mt-10 pt-8" style={{ borderTop: `2px solid ${COLORS.borderGray}` }}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-semibold" style={{ color: COLORS.darkText }}>
+                    Default Column Layout
+                  </h2>
+                  <p className="text-sm mt-1" style={{ color: COLORS.grayText }}>
+                    Set default number of columns per channel for Table View and Order View
+                  </p>
+                </div>
+                
+                {/* Reset Layout Button */}
+                <button
+                  data-testid="reset-layout-btn"
+                  onClick={resetLayout}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:bg-gray-100"
+                  style={{ border: `1px solid ${COLORS.borderGray}`, color: COLORS.grayText }}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span className="text-sm font-medium">Reset Layout</span>
+                </button>
+              </div>
+
+              {/* Table View Layout */}
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold mb-3" style={{ color: COLORS.darkText }}>
+                  Table View
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {ALL_CHANNELS.map((channel) => (
+                    <div
+                      key={`table-${channel.id}`}
+                      className="p-4 rounded-lg border"
+                      style={{ backgroundColor: COLORS.lightBg, borderColor: COLORS.borderGray }}
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">{channel.icon}</span>
+                        <span className="font-medium text-sm" style={{ color: COLORS.darkText }}>
+                          {channel.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center gap-3">
+                        <button
+                          data-testid={`table-${channel.id}-minus`}
+                          onClick={() => updateTableViewColumns(channel.id, -1)}
+                          disabled={layoutTableView[channel.id] <= 1}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors disabled:opacity-30"
+                          style={{ 
+                            backgroundColor: COLORS.borderGray, 
+                            color: COLORS.darkText 
+                          }}
+                        >
+                          −
+                        </button>
+                        <span 
+                          className="text-xl font-bold w-8 text-center"
+                          style={{ color: COLORS.primaryOrange }}
+                        >
+                          {layoutTableView[channel.id]}
+                        </span>
+                        <button
+                          data-testid={`table-${channel.id}-plus`}
+                          onClick={() => updateTableViewColumns(channel.id, 1)}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors hover:opacity-80"
+                          style={{ 
+                            backgroundColor: COLORS.primaryOrange, 
+                            color: 'white' 
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Order View Layout */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3" style={{ color: COLORS.darkText }}>
+                  Order View
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {ALL_CHANNELS.map((channel) => (
+                    <div
+                      key={`order-${channel.id}`}
+                      className="p-4 rounded-lg border"
+                      style={{ backgroundColor: COLORS.lightBg, borderColor: COLORS.borderGray }}
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">{channel.icon}</span>
+                        <span className="font-medium text-sm" style={{ color: COLORS.darkText }}>
+                          {channel.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center gap-3">
+                        <button
+                          data-testid={`order-${channel.id}-minus`}
+                          onClick={() => updateOrderViewColumns(channel.id, -1)}
+                          disabled={layoutOrderView[channel.id] <= 1}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors disabled:opacity-30"
+                          style={{ 
+                            backgroundColor: COLORS.borderGray, 
+                            color: COLORS.darkText 
+                          }}
+                        >
+                          −
+                        </button>
+                        <span 
+                          className="text-xl font-bold w-8 text-center"
+                          style={{ color: COLORS.primaryGreen }}
+                        >
+                          {layoutOrderView[channel.id]}
+                        </span>
+                        <button
+                          data-testid={`order-${channel.id}-plus`}
+                          onClick={() => updateOrderViewColumns(channel.id, 1)}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors hover:opacity-80"
+                          style={{ 
+                            backgroundColor: COLORS.primaryGreen, 
+                            color: 'white' 
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Note */}
+              <div 
+                className="mt-4 p-3 rounded-lg"
+                style={{ backgroundColor: `${COLORS.grayText}10` }}
+              >
+                <p className="text-xs" style={{ color: COLORS.grayText }}>
+                  💡 Arrow buttons on dashboard adjust columns temporarily (session only). Save here for permanent defaults.
+                </p>
+              </div>
             </div>
 
             {/* Changes Indicator */}
