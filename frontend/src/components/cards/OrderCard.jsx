@@ -64,12 +64,9 @@ const OrderCard = ({
   // Order Card shows action if user has permission; actual validation happens on action
   const isOrderCancelAllowed = canCancelOrder;
 
-  // Header background color based on order type (matching TableCard)
+  // Header background color - neutral for all order types
   const getHeaderBgColor = () => {
-    if (isRoom) return '#E3F2FD';           // Blue for Room
-    if (isTakeAway) return '#C8E6C9';       // Green for Take Away
-    if (isDelivery) return '#FFEBEE';       // Pink for Delivery
-    return '#FFF9E6';                        // Yellow for Dine-In (default)
+    return '#F5F5F5';  // Light neutral gray for all
   };
 
   // Order type label for header

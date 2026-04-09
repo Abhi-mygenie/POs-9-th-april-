@@ -1,5 +1,29 @@
 # Changelog
 
+## Apr 9, 2026 — Session 5 (Header UX Refinements)
+
+### Filter Pills Toned Down — COMPLETE ✅
+- **Problem**: All status filter pills were solid orange (#F27329) — too prominent and overwhelming
+- **Solution**: Changed to ghost/outline style for inactive filters:
+  - Inactive: Light gray border, dark text, transparent background
+  - Active: Solid orange background, white text (unchanged)
+- **Files Modified**: `Header.jsx`
+
+### Card Header Colors Removed — COMPLETE ✅
+- **Problem**: TableCard and OrderCard had colored backgrounds indicating channel type:
+  - Yellow for Dine-In
+  - Green for TakeAway
+  - Pink for Delivery
+  - Blue for Room
+- **Solution**: Changed all card headers to neutral light gray (#F5F5F5) regardless of order type
+- **Files Modified**: `TableCard.jsx`, `OrderCard.jsx`
+
+### Add Button Prominence — COMPLETE ✅
+- **Result**: With filter pills toned down, the `[+ Add]` button now naturally stands out as the primary CTA
+- **No code changes needed** — automatically achieved via filter pill changes
+
+---
+
 ## Apr 8, 2026 — Session 4 (Header UX — Option A Labeled Dropdowns)
 
 ### Header UX Improvement — COMPLETE ✅

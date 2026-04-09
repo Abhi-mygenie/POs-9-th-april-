@@ -223,15 +223,16 @@ const Header = ({
                         setActiveChannels([...activeChannels, channel.id]);
                       }
                     }}
-                    className="flex items-center gap-1.5 py-2.5 px-3 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 py-2 px-2.5 rounded-md text-sm font-medium transition-colors"
                     style={{
                       backgroundColor: isActive ? COLORS.primaryOrange : "transparent",
-                      color: isActive ? "white" : COLORS.grayText,
+                      color: isActive ? "white" : COLORS.darkText,
+                      border: isActive ? "none" : `1px solid ${COLORS.borderGray}`,
                     }}
                     title={channel.fullLabel}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="text-sm font-medium">{channel.label}</span>
+                    <span>{channel.label}</span>
                   </button>
                 );
               })
@@ -244,10 +245,11 @@ const Header = ({
                     key={status.id}
                     data-testid={`filter-status-${status.id}`}
                     onClick={() => handleStatusToggle(status.id)}
-                    className="py-2.5 px-3 rounded-lg text-sm font-medium transition-colors"
+                    className="py-2 px-2.5 rounded-md text-sm font-medium transition-colors"
                     style={{
                       backgroundColor: isActive ? COLORS.primaryOrange : "transparent",
-                      color: isActive ? "white" : COLORS.grayText,
+                      color: isActive ? "white" : COLORS.darkText,
+                      border: isActive ? "none" : `1px solid ${COLORS.borderGray}`,
                     }}
                   >
                     {status.label}

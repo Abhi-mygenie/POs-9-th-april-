@@ -25,17 +25,12 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
   }), []);
 
   const headerPillStyle = useMemo(() => {
-    // Different background colors by order type
-    let bg = '#FFF9E6'; // Default yellow for Dine-In
-    if (table.orderType === 'takeAway') bg = '#C8E6C9';      // Green
-    else if (table.orderType === 'delivery') bg = '#FFEBEE'; // Pink
-    else if (table.orderType === 'walkIn') bg = '#FFF9E6';   // Yellow (same as Dine-In)
-    else if (table.isRoom) bg = '#E3F2FD';                   // Blue for Room
+    // Neutral header for all order types - no colored backgrounds
     return {
-      backgroundColor: bg,
+      backgroundColor: '#F5F5F5',  // Light neutral gray
       color: COLORS.darkText,
     };
-  }, [table.orderType, table.isRoom]);
+  }, []);
 
   const handleCardClick = () => {
     if (hasOrders || isYetToConfirm) {
