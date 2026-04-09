@@ -217,23 +217,22 @@ export const filterLayoutByApiTypes = (layoutConfig, apiPaymentTypes = [], hasRo
 };
 
 /**
- * Get dynamic payment types from API that aren't in our registry
- * These are types like 'dineout', 'zomato_gold', etc.
+ * Get dynamic payment types from API that aren't primary methods
+ * These are types like 'dineout', 'zomato_gold', 'OTHER', etc.
+ * Only filters out primary payment methods (cash, upi, card) and split (partial)
  * @param {Array} apiPaymentTypes - API paymentTypes array
- * @returns {Array} Dynamic types with {id, name, displayName, icon}
+ * @returns {Array} Dynamic types with {id, name, displayName, apiValue}
  */
 export const getDynamicPaymentTypes = (apiPaymentTypes = []) => {
-  const knownApiNames = Object.values(PAYMENT_METHODS)
-    .flatMap(m => m.apiNames || [])
-    .map(n => n.toLowerCase());
+  // Only filter out primary methods that are shown as buttons in Row 1 + Split
+  const primaryApiNames = ['cash', 'upi', 'card', 'partial'];
   
   return apiPaymentTypes
-    .filter(pt => !knownApiNames.includes((pt.name || '').toLowerCase()))
+    .filter(pt => !primaryApiNames.includes((pt.name || '').toLowerCase()))
     .map(pt => ({
       id: pt.name,
       name: pt.name,
       displayName: pt.displayName || pt.name,
-      icon: MoreHorizontal,  // Default icon for dynamic types
       apiValue: pt.name,
       isDynamic: true,
     }));

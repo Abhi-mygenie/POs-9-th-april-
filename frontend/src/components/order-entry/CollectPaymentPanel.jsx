@@ -915,7 +915,7 @@ const CollectPaymentPanel = ({
               </button>
             )}
             
-            {/* First Dynamic Type as Button */}
+            {/* First Dynamic Type as Button (no icon, just label) */}
             {dynamicPaymentTypes.length > 0 && (
               <button
                 onClick={() => { setPaymentMethod(dynamicPaymentTypes[0].id); setShowSplit(false); setSplitType(null); }}
@@ -926,8 +926,7 @@ const CollectPaymentPanel = ({
                 }}
                 data-testid={`payment-${dynamicPaymentTypes[0].id}-btn`}
               >
-                <MoreHorizontal className="w-4 h-4" style={{ color: paymentMethod === dynamicPaymentTypes[0].id && !showSplit ? COLORS.primaryGreen : COLORS.grayText }} />
-                <span className="text-xs" style={{ color: paymentMethod === dynamicPaymentTypes[0].id && !showSplit ? COLORS.primaryGreen : COLORS.darkText }}>
+                <span className="text-xs font-medium" style={{ color: paymentMethod === dynamicPaymentTypes[0].id && !showSplit ? COLORS.primaryGreen : COLORS.darkText }}>
                   {dynamicPaymentTypes[0].displayName}
                 </span>
               </button>
