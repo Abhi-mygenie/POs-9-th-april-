@@ -6,7 +6,8 @@ import { useToast } from "../../hooks/use-toast";
 import api from "../../api/axios";
 import { API_ENDPOINTS } from "../../api/constants";
 import { toAPI as tableToAPI } from "../../api/transforms/tableTransform";
-import { toAPI as orderToAPI, customItemFromAPI } from "../../api/transforms/orderTransform";
+import { toAPI as orderToAPI, customItemFromAPI, fromAPI as orderFromAPI } from "../../api/transforms/orderTransform";
+import { fetchSingleOrderForSocket } from "../../api/services/orderService";
 import AddCustomItemModal from "./AddCustomItemModal";
 import CategoryPanel from "./CategoryPanel";
 import CartPanel from "./CartPanel";
@@ -1106,14 +1107,50 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
             price: item.price || (item.unitPrice * item.qty),
             unitPrice: item.unitPrice || item.price / item.qty,
           }))}
-          onSplitSuccess={(response) => {
-            // After split, auto-open payment for new order
-            // The response should contain the new order ID
-            toast({ title: "Bill Split", description: "Opening payment for split order..." });
-            // Refresh orders to get the new split order
+          onSplitSuccess={async (response) => {
+            // After split, open payment for the NEW order (selected items)
+            // The API response should contain the new order ID(s)
+            console.log('[SplitSuccess] response:', response);
+            
+            try {
+              // Get new order ID from response - API may return it in different formats
+              const newOrderId = response?.new_order_ids?.[0] || response?.order_id || response?.data?.new_order_ids?.[0];
+              
+              if (newOrderId) {
+                // Fetch the new order details
+                const newOrder = await fetchSingleOrderForSocket(newOrderId);
+                
+                if (newOrder) {
+                  // Update cart with new order's items
+                  const newCartItems = (newOrder.items || []).map(item => ({
+                    ...item,
+                    placed: true,
+                  }));
+                  
+                  setCartItems(newCartItems);
+                  setPlacedOrderId(newOrderId);
+                  setOrderFinancials({
+                    amount: newOrder.amount || 0,
+                    subtotalAmount: newOrder.subtotalAmount || 0,
+                    subtotalBeforeTax: newOrder.subtotalBeforeTax || 0,
+                  });
+                  
+                  // Open payment panel for the new order (selected items)
+                  setShowPaymentPanel(true);
+                  toast({ title: "Bill Split", description: "Opening payment for selected items..." });
+                } else {
+                  toast({ title: "Bill Split", description: "Bill split successfully. Please select the new order from dashboard." });
+                }
+              } else {
+                toast({ title: "Bill Split", description: "Bill split successfully. Please select the new order from dashboard." });
+              }
+            } catch (err) {
+              console.error('[SplitSuccess] Error fetching new order:', err);
+              toast({ title: "Bill Split", description: "Bill split successfully. Please select the new order from dashboard." });
+            }
+            
+            // Refresh orders list
             refreshOrders();
-            // Close OrderEntry and let user handle from dashboard
-            // Or we could open payment panel for new order
             setShowSplitBillModal(false);
           }}
         />
