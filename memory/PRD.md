@@ -1,151 +1,249 @@
-# MyGenie POS - Product Requirements Document (PRD)
+# MyGenie Restaurant POS System - PRD
 
-## Overview
-MyGenie POS is a restaurant Point of Sale application built with React frontend connecting to a preprod API backend.
+## Original Problem Statement
+Pull code from https://github.com/Abhi-mygenie/8-april-del-tw.git default branch (v2). Run and build as-is React app (no backend). Add env variables for API and Socket URLs.
 
-**Last Updated:** April 9, 2026  
-**Branch:** v3--payments-  
-**Environment:**
-- API Base URL: `https://preprod.mygenie.online/`
-- Socket URL: `https://presocket.mygenie.online`
+**Emergent Product Requirement:** Redesign the Dashboard layout from an "Area-based" grouping (Default, In, Out) to a "Channel-based" dynamic column layout (Dine-in, Takeaway, Delivery, Room). Columns must be resizable via arrows, and dynamically adapt to available screen width.
 
----
+## Tech Stack
+- React 19 with CRACO
+- Tailwind CSS
+- Radix UI components
+- Socket.io client
+- React Router DOM
 
-## Core Features Implemented
-
-### 1. Order Entry System
-- **Table Management**: Dine-in with physical tables
-- **Walk-In Orders**: Dynamic table creation with custom table name
-- **Order Types**: Dine-In, Walk-In, TakeAway, Delivery
-- **Category-based Menu**: Searchable categories and items
-- **Item Customization**: Add-ons, modifications, notes
-
-### 2. Walk-In Order Flow (NEW)
-- Default order type when clicking "Add Order"
-- **Table Name Field**: Optional custom table name for Walk-In
-- **Label Priority**: Table Name → Customer Name → "Walk-In"
-- Creates `dinein` order with `table_id: 0`
-
-### 3. Payment System
-- **Dynamic Payment Methods**: From API `paymentTypes`
-- **Configurable Layout**: Row 1 (3 buttons) + Row 2 (2 buttons + dropdown)
-- **Split Bill**: Item-based splitting, payment opens for selected items
-- **To Room Transfer**: For restaurants with rooms
-
-### 4. UI/UX Improvements
-- **Header Reorganization**: 
-  - Left Panel: Back button + Category search
-  - Middle Panel: Food filters (Veg/Non-Veg/Egg) + Action icons (Transfer, Merge, Notes, Customer)
-  - Right Panel: Table selector + Cancel + Split
-- **Search Enhancement**: Orange-bordered item search, enhanced category search
-- **Table Search**: Searchable table dropdown
-
----
+## Environment Configuration
+Frontend .env:
+- REACT_APP_API_BASE_URL=https://preprod.mygenie.online/
+- REACT_APP_SOCKET_URL=https://presocket.mygenie.online
 
 ## User Personas
+- Restaurant Owner/Manager: Uses the POS dashboard to monitor all order channels simultaneously
 
-### 1. Restaurant Staff (Primary)
-- Takes orders from customers
-- Manages table assignments
-- Processes payments
-- Handles split bills
+## Core Requirements
+1. Channel-based columns: Dine-In, TakeAway, Delivery, Room — each rendered as independent columns
+2. Arrow buttons `<` / `>` on each channel header to decrease/increase column count independently
+3. No max limit on column increase; min is 1 column (if channel has orders)
+4. Channels with 0 orders auto-hide (0 columns)
+5. **Default layout from Settings**: Columns per channel configured in Visibility Settings page, saved to localStorage
+6. Default columns differ by view: table view = 2, order view = 1 (if nothing in localStorage)
+7. **Arrow changes are session-only** — switching views reloads from localStorage
+8. Horizontal scroll when user manually expands beyond viewport via arrows
+9. Permissions-based UI: Cancel, Bill, Print strictly from AuthContext permissions array
 
-### 2. Restaurant Manager
-- Monitors orders
-- Manages settings
-- Views reports
+## Key Architectural Decisions
+- **Permissions:** UI is a "dumb" display layer. No frontend logic for time windows or restaurant settings.
+- **Channel columns:** `maxColumns` controlled per-channel via `useState`, initialized from localStorage. `actualColumns = min(orderCount, maxColumns)`.
+- **Feature flag:** `USE_CHANNEL_LAYOUT = true` in `/app/frontend/src/constants/featureFlags.js` for safe rollout.
+- **Layout persistence:** Saved in localStorage via Visibility Settings page. Arrow buttons are session-only.
 
----
+## Current Status (Apr 9, 2026)
 
-## Technical Architecture
+### What's Working
+- Phase A (Arrow Functionality) — arrows work independently per channel, tested 100% pass rate
+- View-type aware defaults — loaded from localStorage (Settings page)
+- Feature flag toggle between old area-based and new channel-based layout
+- **Dashboard Dual-View System — FULLY IMPLEMENTED:**
+  - Toggle between "By Channel" and "By Status" views
+  - Filter swap: Channel View → 9 Status filters, Status View → 4 Channel filters
+  - Max 6 filters shown in header
+  - All 9 status filters working (YTC, Preparing, Ready, Running, Served, Pending Pay, Paid, Cancelled, Reserved)
+- **Food Transfer — FIXED:** onFoodTransfer prop now threaded through entire component chain
+- **Visibility Settings Page — FULLY IMPLEMENTED:**
+  - Status Configuration: Enable/disable statuses
+  - Channel Visibility: Override API-provided channels
+  - Station View Configuration: KDS/BAR panels
+  - **Default Column Layout**: Configure columns per channel for Table/Order views
+- **Header UX Refinements — COMPLETE:**
+  - Light tint filter pills (less visually heavy)
+  - Centered search with dedicated space
+  - Labeled dropdowns for view toggles
+- **Card UX Refinements — COMPLETE:**
+  - Neutral gray card headers (no colored backgrounds)
+  - Light tint Ready/Serve buttons
+  - Gray Cancel X button
+  - MG logo removed from Order View (own orders)
+- **Auto Print Checkboxes — COMPLETE:**
+  - KOT and Bill checkboxes in Order Entry
+  - Default state from Settings API
 
-### Frontend Stack
-- React 18 with Create React App (CRACO)
-- Tailwind CSS + Radix UI components
-- React Context for state management
-- Socket.io for real-time updates
+### Known Issues (Active)
+1. **`enabledChannels` ReferenceError** — intermittent crash "Cannot access 'enabledChannels' before initialization". Root cause: useEffect ordering or cached JS bundle.
+2. **Item-level spinner missing** — Ready/Serve buttons don't show loading state during API call
 
-### Key Contexts
-- `RestaurantContext`: Restaurant settings, payment types
-- `TableContext`: Tables and rooms
-- `OrderContext`: Active orders
-- `SettingsContext`: Payment layout config, cancellation reasons
+### What's Parked
+- Phase B: Drag-to-Resize via ResizeHandle (non-functional, parked)
 
-### API Integration
-- Base URL from `REACT_APP_API_BASE_URL`
-- Socket from `REACT_APP_SOCKET_URL`
-- All endpoints under `/api/v1/` or `/api/v2/`
-
----
-
-## What's Been Implemented (April 9, 2026)
-
-### Session 1: Initial Setup
-- [x] Cloned v3--payments- branch
-- [x] Configured environment variables
-- [x] Frontend running in dev mode
-
-### Session 2: UI/UX Improvements
-- [x] Removed Gluten Free, Jain, Vegan filters
-- [x] Reorganized header layout (3-panel structure)
-- [x] Moved action icons to middle panel header
-- [x] Added table search in dropdown
-- [x] Enhanced search box styling (orange border)
-- [x] Aligned row heights across panels (py-4)
-
-### Session 3: Walk-In Order Flow
-- [x] Fixed auto-select bug (no longer assigns physical table)
-- [x] Added Table Name field for Walk-In orders
-- [x] Default order type changed to Walk-In
-
-### Session 4: Split Bill Fix
-- [x] Payment now opens for SELECTED items (new order)
-- [x] Remaining items stay in original order
-
-### Session 5: Payment Methods Architecture
-- [x] Created payment methods registry (`/config/paymentMethods.js`)
-- [x] Dynamic payment types from API
-- [x] Layout: Row 1 (3 methods) + Row 2 (2 buttons + dropdown)
-- [x] Fixed OTHERS missing from dropdown
-
----
-
-## Prioritized Backlog
+## Backlog (P0 → P2)
 
 ### P0 (Critical)
-- [x] Payment methods from API - DONE
-- [x] Split bill opens correct order - DONE
+- Add `setTableEngaged` to `handleItemStatusChange` (item-level spinner)
 
-### P1 (High)
-- [ ] Hold/Pending payment implementation
-- [ ] Settings UI for payment layout configuration
-- [ ] Credit button (if in API)
+### P1 (Important)
+- Fix `handleTableClick` type mismatch (String vs Number comparison)
+- Remove BUG-216 free→engage workaround
+- Phase B: Drag-to-Resize via ResizeHandle between channels
 
-### P2 (Medium)
-- [ ] Payment type icons customization
-- [ ] Save payment layout config to API
-- [ ] Room transfer improvements
+### P2 (Future)
+- Wire `onMergeOrder`/`onTableShift` in Channel Layout
+- Clean up deprecated area-based components (TableSection.jsx) after full approval
+- Implement `clear_payment` functionality
+- Implement `serve` button functionality (API integration)
+- Fix backend table socket bug (frontend workaround in place)
 
-### P3 (Low)
-- [ ] Animation improvements
-- [ ] Offline mode support
-
----
-
-## Known Issues / Bugs Fixed
-
-| Bug | Status | Fix |
-|-----|--------|-----|
-| Walk-In auto-selects physical table | ✅ Fixed | Set `table = null` for Walk-In |
-| Split bill shows remaining items | ✅ Fixed | Fetch new order, open payment for it |
-| Card shows when not in API | ✅ Fixed | Filter by API paymentTypes |
-| OTHERS missing from dropdown | ✅ Fixed | Updated getDynamicPaymentTypes |
+## File References
+- `/app/frontend/src/components/dashboard/ChannelColumnsLayout.jsx` — main container, arrow logic, smart defaults
+- `/app/frontend/src/components/dashboard/ChannelColumn.jsx` — individual channel column, arrow buttons, grid rendering
+- `/app/frontend/src/components/dashboard/ResizeHandle.jsx` — drag handle (Phase B, non-functional)
+- `/app/frontend/src/constants/featureFlags.js` — `USE_CHANNEL_LAYOUT` flag
+- `/app/frontend/src/pages/DashboardPage.jsx` — orchestrator, channelData memo, handlers
+- `/app/frontend/src/components/cards/OrderCard.jsx` — permission-based actions
+- `/app/frontend/src/api/socket/socketHandlers.js` — table lock workaround
+- `/app/frontend/src/api/constants.js` — `F_ORDER_STATUS` mapping, `ORDER_TO_TABLE_STATUS`
+- `/app/frontend/src/components/layout/Header.jsx` — filters, search, view toggles
 
 ---
 
-## Next Tasks
+## Dashboard Dual-View System — Detailed Spec
 
-1. Test all payment flows end-to-end
-2. Implement Hold/Pending payment
-3. Add Settings UI for payment layout
-4. Remove debug console logs before production
+### Overview
+
+The dashboard supports **two switchable views**, toggled via a button in the header:
+
+1. **"By Channel"** — columns grouped by order channel (Dine-In, TakeAway, Delivery, Room)
+2. **"By Status"** — columns grouped by `fOrderStatus` (Preparing, Ready, Cancelled, Served, etc.)
+
+When the active view switches, the **header filter pills swap** accordingly.
+
+---
+
+### View 1: By Channel (Current Implementation)
+
+| Aspect | Detail |
+|--------|--------|
+| **Columns** | Dine-In, TakeAway, Delivery, Room |
+| **Header filters** | Status pills — filter orders within all channel columns |
+| **Arrows `<` `>`** | Independent per column, decrease/increase, min 1, no max |
+| **Auto-hide** | Column hidden if 0 orders |
+| **Smart defaults** | Measure container, distribute columns among visible channels |
+| **Resets on login** | Yes |
+
+---
+
+### View 2: By Status (IMPLEMENTED ✅)
+
+#### Status Column Definition
+
+Every `fOrderStatus` value (1–10) gets its **own independent column**, displayed in priority order. Columns with 0 orders are auto-hidden.
+
+| Column | fOrderStatus | Label | Status |
+|--------|-------------|-------|--------|
+| 1 | 7 | Yet to Confirm (YTC) | ✅ Implemented |
+| 2 | 1 | Preparing | ✅ Implemented |
+| 3 | 2 | Ready | ✅ Implemented |
+| 4 | 8 | Running | ✅ Implemented |
+| 5 | 5 | Served | ✅ Implemented |
+| 6 | 9 | Pending Payment | ✅ Implemented |
+| 7 | 6 | Paid | ✅ Implemented |
+| 8 | 3 | Cancelled | ✅ Implemented |
+| 9 | 10 | Reserved | ✅ Implemented (NEW) |
+
+**Scheduled:** NOT a `fOrderStatus` value. Comes from the `order_status` field. No separate column. Scheduled orders appear based on their `fOrderStatus`. User must relogin/refresh context for scheduled order updates.
+
+**Bill Ready:** Same as Paid = `fOrderStatus: 6`. Not a separate status.
+
+#### Header Filters in By Status View (IMPLEMENTED ✅)
+
+Channel pills: Del | Take | Dine | Room
+- Clicking a channel filter → shows only that channel's orders across all status columns
+- Multi-select supported (toggle individual channels)
+- No "All" button — just toggle individual channels
+
+#### Hide Feature (IMPLEMENTED ✅)
+
+- Each column header has a **"Hide" link**
+- Clicking "Hide" **completely removes** the column from view — even if it has orders
+- **Linked hiding:** Hide a channel column → Also hides that channel's filter pill in Status View (and vice versa)
+- Use case: Cook hides Served/Paid. Manager sees everything.
+- Hidden state **resets on login** (no persistence)
+- **Restore button:** "Show Hidden (N)" button appears in Header when items are hidden
+- Clicking restore shows all hidden columns and filters
+
+---
+
+### Filter Swap Logic
+
+| Active View | Columns Show | Header Filters Show |
+|-------------|-------------|-------------------|
+| By Channel | 4 channel columns | Status pills (Preparing, Ready, Cancelled, Served, Paid, YTC, Running, Pending Payment, Reserved) |
+| By Status | Up to 10 status columns | Channel pills (Dine-In, TakeAway, Delivery, Room) |
+
+---
+
+### fOrderStatus Complete Mapping (Source of Truth)
+
+Current `F_ORDER_STATUS` in `/app/frontend/src/api/constants.js`:
+
+```javascript
+export const F_ORDER_STATUS = {
+  1: 'preparing',
+  2: 'ready',
+  3: 'cancelled',
+  // 4: reserved for future development
+  5: 'served',
+  6: 'paid',          // Also = "Bill Ready"
+  7: 'pending',        // = "Yet to Confirm"
+  8: 'running',
+  9: 'pendingPayment',
+  // 10: 'reserved'    // NEW — to be added
+};
+```
+
+**Changes needed:**
+- Add `10: 'reserved'` to `F_ORDER_STATUS`
+- Add corresponding `ORDER_TO_TABLE_STATUS` mapping for `reserved`
+- fOrderStatus 4: leave unmapped for now (reserved for future)
+
+---
+
+### Unchanged Behavior (Both Views)
+
+- Arrows `<` `>` — independent per column, decrease/increase, min 1 col, no max limit
+- Smart defaults — measure container width, distribute among visible columns
+- View-type aware — table view default 2 cols, order view default 1 col
+- Layout resets on every login (no localStorage)
+- Horizontal scroll when expanded beyond viewport
+- Table view / Order view card toggle works within both dashboard views
+- Auto-hide columns with 0 orders (unless manually shown)
+
+---
+
+### Implementation Plan for By Status View
+
+#### Phase 1: Data Layer
+1. Add `fOrderStatus: 10 → 'reserved'` to `F_ORDER_STATUS` in `constants.js`
+2. Build `statusData` memo in `DashboardPage.jsx` — group ALL orders by `fOrderStatus` (similar to existing `channelData` memo but keyed by status)
+3. Define `STATUS_COLUMNS` constant: ordered list of `{ id, fOrderStatus, label }` for all 10 statuses
+
+#### Phase 2: View Toggle
+4. Add view toggle state in `DashboardPage.jsx`: `dashboardView: 'channel' | 'status'`
+5. Add toggle button/icon in `Header.jsx`
+6. Conditionally render `ChannelColumnsLayout` with `channelData` OR `statusData` based on active view
+
+#### Phase 3: Filter Swap
+7. When `dashboardView === 'channel'` → Header shows status filter pills
+8. When `dashboardView === 'status'` → Header shows channel filter pills
+9. Filter logic: selected filters reduce the items shown within each column
+
+#### Phase 4: Hide Feature
+10. Add `hiddenColumns` state (Set) in layout component
+11. Add "Hide" link in each column header
+12. Add "Show hidden" restore mechanism in Header
+13. Hidden state resets on login
+
+#### Files to Modify
+- `/app/frontend/src/api/constants.js` — add fOrderStatus 10
+- `/app/frontend/src/pages/DashboardPage.jsx` — statusData memo, view toggle state, filter swap
+- `/app/frontend/src/components/dashboard/ChannelColumnsLayout.jsx` — accept generic columns data (works for both channel and status views)
+- `/app/frontend/src/components/dashboard/ChannelColumn.jsx` — add "Hide" link in header
+- `/app/frontend/src/components/layout/Header.jsx` — view toggle button, swap filter pills, show hidden columns restore
