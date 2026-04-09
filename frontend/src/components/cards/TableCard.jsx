@@ -7,6 +7,41 @@ import { getTableStatusConfig, isTableActive } from "../../utils";
 import { IconButton, TextButton } from "./buttons";
 import { CARD_BASE_STYLE } from "./TableCard.styles";
 
+/**
+ * Compute stage-specific time for TableCard
+ * - Preparing: time since order placed (how long cooking)
+ * - Ready: time since became ready (waiting to serve)
+ * - Served: time since became served (waiting for bill)
+ */
+const computeStageTime = (table) => {
+  const now = new Date();
+  
+  const formatDuration = (ms) => {
+    if (ms < 0) return "0m";
+    const mins = Math.floor(ms / 60000);
+    const hours = Math.floor(mins / 60);
+    const days = Math.floor(hours / 24);
+    if (days > 0) return `${days}d`;
+    if (hours > 0) return `${hours}h`;
+    return `${mins}m`;
+  };
+
+  // Use stage-specific timestamps if available
+  if (table.fOrderStatus === 3 && table.servedAt) {
+    // Served - show time since served
+    return formatDuration(now - new Date(table.servedAt));
+  } else if (table.fOrderStatus === 2 && table.readyAt) {
+    // Ready - show time since ready
+    return formatDuration(now - new Date(table.readyAt));
+  } else if (table.createdAt) {
+    // Preparing or fallback - show time since order placed
+    return formatDuration(now - new Date(table.createdAt));
+  }
+  
+  // Fallback to existing time field
+  return table.time || '';
+};
+
 // Table Card Component - Simplified (no expansion, uses modal)
 const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, onConfirmOrder, onCancelOrder, onMarkReady, onMarkServed, isSnoozed, onToggleSnooze, currencySymbol = '₹', isEngaged = false }) => {
   const statusConfig = getTableStatusConfig(table.status);
@@ -129,9 +164,9 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
                 )}
             </div>
             
-            {/* Time */}
+            {/* Time - Stage specific */}
             <div className="text-xs mt-1 mb-2 whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: COLORS.grayText }}>
-              <span>{table.status === "reserved" ? table.reservedTime : table.time}</span>
+              <span>{table.status === "reserved" ? table.reservedTime : computeStageTime(table)}</span>
             </div>
 
             {/* Action Buttons */}

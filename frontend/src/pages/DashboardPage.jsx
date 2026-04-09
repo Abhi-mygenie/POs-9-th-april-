@@ -301,6 +301,10 @@ const DashboardPage = () => {
         fOrderStatus: hasOrder ? order.fOrderStatus : undefined,
         orderId: hasOrder ? order.orderId : undefined,
         waiter: hasOrder ? order.waiter : undefined,
+        // Timeline timestamps
+        createdAt: hasOrder ? order.createdAt : undefined,
+        readyAt: hasOrder ? order.readyAt : undefined,
+        servedAt: hasOrder ? order.servedAt : undefined,
       };
     };
 
@@ -337,6 +341,10 @@ const DashboardPage = () => {
             orderType: 'walkIn',
             fOrderStatus: order.fOrderStatus,
             waiter: order.waiter || '',
+            // Timeline timestamps
+            createdAt: order.createdAt,
+            readyAt: order.readyAt,
+            servedAt: order.servedAt,
           })),
         };
       }
@@ -363,6 +371,10 @@ const DashboardPage = () => {
           orderType: 'walkIn',
           fOrderStatus: order.fOrderStatus,
           waiter: order.waiter || '',
+          // Timeline timestamps
+          createdAt: order.createdAt,
+          readyAt: order.readyAt,
+          servedAt: order.servedAt,
         });
       });
 
@@ -398,6 +410,10 @@ const DashboardPage = () => {
           fOrderStatus: hasOrder ? order.fOrderStatus : undefined,
           orderId: hasOrder ? order.orderId : undefined,
           customer: hasOrder ? order.customer : undefined,
+          // Timeline timestamps
+          createdAt: hasOrder ? order.createdAt : undefined,
+          readyAt: hasOrder ? order.readyAt : undefined,
+          servedAt: hasOrder ? order.servedAt : undefined,
         };
       });
   }, [tablesLoaded, apiTables, getOrderByTableId]);
@@ -422,6 +438,10 @@ const DashboardPage = () => {
       fOrderStatus: order.fOrderStatus,
       waiter: order.waiter || '',
       order: order, // Keep full order for OrderCard
+      // Timeline timestamps
+      createdAt: order.createdAt,
+      readyAt: order.readyAt,
+      servedAt: order.servedAt,
     });
 
     // Helper to adapt takeaway/delivery orders
@@ -438,6 +458,10 @@ const DashboardPage = () => {
       fOrderStatus: order.fOrderStatus,
       waiter: order.waiter || '',
       order: order, // Keep full order for OrderCard
+      // Timeline timestamps
+      createdAt: order.createdAt,
+      readyAt: order.readyAt,
+      servedAt: order.servedAt,
     });
 
     // Helper to enrich dine-in tables with order data
@@ -526,6 +550,10 @@ const DashboardPage = () => {
       fOrderStatus: order.fOrderStatus,
       waiter: order.waiter || '',
       order: order, // Keep full order for OrderCard
+      // Timeline timestamps
+      createdAt: order.createdAt,
+      readyAt: order.readyAt,
+      servedAt: order.servedAt,
     });
 
     // Collect ALL orders from all channels

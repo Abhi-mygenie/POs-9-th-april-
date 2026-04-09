@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { User, X, ChevronDown, ChevronUp, MapPin, Clock, Printer, ShoppingBag, Bike, Utensils, DoorOpen, Circle, CheckCircle2, Check, FileText, GitMerge, ArrowLeftRight, CornerRightUp, Loader2 } from "lucide-react";
 import { COLORS, SOURCE_COLORS } from "../../constants";
+import OrderTimeline from "./OrderTimeline";
 
 /**
  * Unified Order Card - Handles Dine-In, TakeAway, Delivery, Room
@@ -182,15 +183,20 @@ const OrderCard = ({
             {renderOrderTypeIcon()}
           </div>
 
-          {/* Table/Customer Name + Time */}
+          {/* Table/Customer Name */}
           {getDisplayName() && (
             <span className="text-xs font-medium truncate" style={{ color: COLORS.darkText }}>
               {getDisplayName()}
             </span>
           )}
-          <span className="text-[10px] flex-shrink-0" style={{ color: COLORS.grayText }}>
-            · {order.time || ''}
-          </span>
+          
+          {/* Timeline: ●──14m──●──3m──● */}
+          <OrderTimeline 
+            createdAt={order.createdAt}
+            readyAt={order.readyAt}
+            servedAt={order.servedAt}
+            fOrderStatus={fOrderStatus}
+          />
         </div>
 
         {/* Center: Amount - Bold + Large */}

@@ -181,6 +181,18 @@ export const fromAPI = {
       createdAt: api.created_at,
       updatedAt: api.updated_at,
 
+      // Computed order-level timestamps from items (for timeline)
+      readyAt: (() => {
+        const items = api.orderDetails || [];
+        const readyTimes = items.map(d => d.ready_at).filter(Boolean);
+        return readyTimes.length > 0 ? readyTimes.sort()[0] : null; // First item ready
+      })(),
+      servedAt: (() => {
+        const items = api.orderDetails || [];
+        const serveTimes = items.map(d => d.serve_at).filter(Boolean);
+        return serveTimes.length > 0 ? serveTimes.sort().pop() : null; // Last item served
+      })(),
+
       // Staff
       punchedBy: employee.f_name || '',
       waiter: employee.f_name || '',
