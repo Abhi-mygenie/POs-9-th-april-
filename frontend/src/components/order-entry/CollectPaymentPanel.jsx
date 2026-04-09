@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
-import { ChevronLeft, CreditCard, Smartphone, Banknote, Split, FileText, Check, ArrowRightLeft, ChevronDown, ChevronUp, BellRing, RefreshCw } from "lucide-react";
+import { ChevronLeft, CreditCard, Smartphone, Banknote, Split, FileText, Check, ArrowRightLeft, ChevronDown, ChevronUp, BellRing, RefreshCw, MoreHorizontal } from "lucide-react";
 import { COLORS } from "../../constants";
 import { useRestaurant, useTables, useSettings } from "../../contexts";
-import { PAYMENT_METHODS, filterLayoutByEnabled, DEFAULT_PAYMENT_LAYOUT } from "../../config/paymentMethods";
+import { PAYMENT_METHODS, filterLayoutByApiTypes, getDynamicPaymentTypes, DEFAULT_PAYMENT_LAYOUT } from "../../config/paymentMethods";
 import PaymentMethodButton, { PaymentMethodButtonInline } from "./PaymentMethodButton";
 
 const CollectPaymentPanel = ({ 
@@ -28,14 +28,20 @@ const CollectPaymentPanel = ({
     [tables]
   );
 
-  // Get filtered layout based on enabled payment methods
+  // Get filtered layout based on API paymentTypes
   const enabledLayout = useMemo(() => 
-    filterLayoutByEnabled(
+    filterLayoutByApiTypes(
       paymentLayoutConfig || DEFAULT_PAYMENT_LAYOUT,
-      restaurantPaymentMethods || {},
+      restaurantPaymentTypes || [],
       hasRooms
     ),
-    [paymentLayoutConfig, restaurantPaymentMethods, hasRooms]
+    [paymentLayoutConfig, restaurantPaymentTypes, hasRooms]
+  );
+
+  // Get dynamic payment types from API (dineout, zomato_gold, etc.)
+  const dynamicPaymentTypes = useMemo(() => 
+    getDynamicPaymentTypes(restaurantPaymentTypes || []),
+    [restaurantPaymentTypes]
   );
 
   // DEBUG LOGS - Payment Configuration
@@ -45,6 +51,7 @@ const CollectPaymentPanel = ({
     paymentLayoutConfig,
     hasRooms,
     enabledLayout,
+    dynamicPaymentTypes,
   });
 
   // Filter out cancelled items for calculations, keep for display
@@ -933,6 +940,35 @@ const CollectPaymentPanel = ({
               </button>
             )}
           </div>
+
+          {/* Dynamic Payment Types from API (Dineout, Zomato Gold, etc.) */}
+          {dynamicPaymentTypes.length > 0 && (
+            <div className="mt-2">
+              <select
+                value={paymentMethod}
+                onChange={(e) => { 
+                  if (e.target.value) {
+                    setPaymentMethod(e.target.value); 
+                    setShowSplit(false); 
+                    setSplitType(null); 
+                  }
+                }}
+                className="w-full py-2.5 px-3 rounded-lg border text-sm"
+                style={{ 
+                  borderColor: dynamicPaymentTypes.some(dt => dt.id === paymentMethod) ? COLORS.primaryGreen : COLORS.borderGray,
+                  backgroundColor: dynamicPaymentTypes.some(dt => dt.id === paymentMethod) ? `${COLORS.primaryGreen}10` : "white",
+                }}
+                data-testid="payment-dynamic-dropdown"
+              >
+                <option value="">More payment options...</option>
+                {dynamicPaymentTypes.map((dt) => (
+                  <option key={dt.id} value={dt.id}>
+                    {dt.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Split Options */}
           {showSplit && (
