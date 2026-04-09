@@ -225,9 +225,8 @@ const Header = ({
                     }}
                     className="flex items-center gap-1.5 py-2 px-2.5 rounded-md text-sm font-medium transition-colors"
                     style={{
-                      backgroundColor: isActive ? COLORS.primaryOrange : "transparent",
-                      color: isActive ? "white" : COLORS.darkText,
-                      border: isActive ? "none" : `1px solid ${COLORS.borderGray}`,
+                      backgroundColor: isActive ? "#FFF3E8" : "transparent",
+                      color: isActive ? COLORS.primaryOrange : COLORS.grayText,
                     }}
                     title={channel.fullLabel}
                   >
@@ -247,9 +246,8 @@ const Header = ({
                     onClick={() => handleStatusToggle(status.id)}
                     className="py-2 px-2.5 rounded-md text-sm font-medium transition-colors"
                     style={{
-                      backgroundColor: isActive ? COLORS.primaryOrange : "transparent",
-                      color: isActive ? "white" : COLORS.darkText,
-                      border: isActive ? "none" : `1px solid ${COLORS.borderGray}`,
+                      backgroundColor: isActive ? "#FFF3E8" : "transparent",
+                      color: isActive ? COLORS.primaryOrange : COLORS.grayText,
                     }}
                   >
                     {status.label}

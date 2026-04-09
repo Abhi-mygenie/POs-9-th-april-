@@ -100,9 +100,11 @@ const OrderCard = ({
     return ''; // Don't show anything if no real customer name
   };
 
-  // Source logo - MG text for own, letter for aggregators
+  // Source logo - MG text for own Dine-In only, letter for aggregators
+  // Skip logo for TakeAway, Delivery, Room (own orders)
   const renderLogo = () => {
-    if (isOwn) {
+    // Only show MG logo for Dine-In own orders
+    if (isOwn && isDineIn) {
       return (
         <div
           className="w-6 h-6 rounded flex items-center justify-center font-bold text-white text-[10px] flex-shrink-0"
@@ -112,16 +114,21 @@ const OrderCard = ({
         </div>
       );
     }
-    const color = SOURCE_COLORS[source] || SOURCE_COLORS.own;
-    const letter = source === "swiggy" ? "S" : source === "zomato" ? "Z" : "O";
-    return (
-      <div
-        className="w-6 h-6 rounded flex items-center justify-center font-bold text-white text-[10px] flex-shrink-0"
-        style={{ backgroundColor: color }}
-      >
-        {letter}
-      </div>
-    );
+    // For aggregators (swiggy, zomato, etc.) - always show logo
+    if (!isOwn) {
+      const color = SOURCE_COLORS[source] || SOURCE_COLORS.own;
+      const letter = source === "swiggy" ? "S" : source === "zomato" ? "Z" : "O";
+      return (
+        <div
+          className="w-6 h-6 rounded flex items-center justify-center font-bold text-white text-[10px] flex-shrink-0"
+          style={{ backgroundColor: color }}
+        >
+          {letter}
+        </div>
+      );
+    }
+    // For own TakeAway, Delivery, Room - no logo
+    return null;
   };
 
   // Get order type icon
