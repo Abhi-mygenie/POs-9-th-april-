@@ -184,6 +184,8 @@ export const fromAPI = {
       isLoyalty: toBoolean(apiSettings.is_loyality),
       isCustomerWallet: toBoolean(apiSettings.is_customer_wallet),
       aggregatorAutoKot: toBoolean(apiSettings.aggregator_auto_kot),
+      autoKot: toBoolean(apiSettings.aggregator_auto_kot),  // Auto print KOT
+      autoBill: toBoolean(apiSettings.billing_auto_bill_print),  // Auto print Bill
       defaultPrepTime: parseInt(apiSettings.default_prep_time) || 15,
     };
   },

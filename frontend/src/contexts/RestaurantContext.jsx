@@ -45,6 +45,14 @@ export const RestaurantProvider = ({ children }) => {
     };
   }, [restaurant]);
 
+  // Get settings (auto print, etc.)
+  const settings = useMemo(() => {
+    return restaurant?.settings || {
+      autoKot: false,
+      autoBill: false,
+    };
+  }, [restaurant]);
+
   // Get payment types
   const paymentTypes = useMemo(() => {
     return restaurant?.paymentTypes || [];
@@ -70,6 +78,7 @@ export const RestaurantProvider = ({ children }) => {
     currencySymbol,
     features,
     cancellation,
+    settings,
     paymentTypes,
     discountTypes,
     printers,
@@ -83,6 +92,7 @@ export const RestaurantProvider = ({ children }) => {
     currencySymbol,
     features,
     cancellation,
+    settings,
     paymentTypes,
     discountTypes,
     printers,
