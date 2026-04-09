@@ -100,20 +100,9 @@ const OrderCard = ({
     return ''; // Don't show anything if no real customer name
   };
 
-  // Source logo - MG text for own Dine-In only, letter for aggregators
-  // Skip logo for TakeAway, Delivery, Room (own orders)
+  // Source logo - Only show for aggregators (swiggy, zomato, etc.)
+  // Skip MG logo for all own orders in Order View
   const renderLogo = () => {
-    // Only show MG logo for Dine-In own orders
-    if (isOwn && isDineIn) {
-      return (
-        <div
-          className="w-6 h-6 rounded flex items-center justify-center font-bold text-white text-[10px] flex-shrink-0"
-          style={{ backgroundColor: COLORS.primaryGreen }}
-        >
-          MG
-        </div>
-      );
-    }
     // For aggregators (swiggy, zomato, etc.) - always show logo
     if (!isOwn) {
       const color = SOURCE_COLORS[source] || SOURCE_COLORS.own;
@@ -127,7 +116,7 @@ const OrderCard = ({
         </div>
       );
     }
-    // For own TakeAway, Delivery, Room - no logo
+    // For all own orders - no logo
     return null;
   };
 

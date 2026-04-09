@@ -106,7 +106,7 @@ const ChannelColumn = ({
         {/* Channel Name, Count & Hide Link */}
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm" style={{ color: COLORS.darkText }}>
+            <span className="font-semibold text-sm whitespace-nowrap" style={{ color: COLORS.darkText }}>
               {channel.name}
             </span>
             <span 
