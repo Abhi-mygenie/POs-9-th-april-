@@ -4,25 +4,49 @@
 
 ### Firebase FCM Phase 1 — COMPLETE
 - Installed Firebase SDK (`firebase@12.12.0`)
-- All Firebase config stored in `.env` (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId, measurementId, VAPID key)
+- All Firebase config stored in `.env` (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId, measurementId, VAPID key) — zero hardcoding
 - **Files Created**:
-  - `src/config/firebase.js` — Firebase init from env, token request, foreground message listener
-  - `public/firebase-messaging-sw.js` — Service Worker for background push notifications (receives data payload, shows native notification, forwards to app for sound)
-  - `src/utils/soundManager.js` — Audio manager: preloads 14 wav files, plays chime/ringer, silent overrides (stops), no looping
-  - `src/contexts/NotificationContext.jsx` — FCM token lifecycle, notification processing, sound triggering, device token registration with backend
-  - `public/sounds/*.wav` — 14 sound files (new_order, confirm_order, order_accepted, order_confirmed, order_ready, order_rejected, attend_table, settle_bill, item_added, swiggy_new_order, five_sec_buzzer, ten_sec_buzzer, forty_five_sec_buzzer, silent)
+  - `src/config/firebase.js` — Firebase init from env, FCM token request, foreground message listener
+  - `public/firebase-messaging-sw.js` — Service Worker for background push notifications
+  - `src/utils/soundManager.js` — Audio manager: preloads 14 wav files, plays by key, silent stops current sound
+  - `src/contexts/NotificationContext.jsx` — Processes incoming FCM messages, triggers sound + banner
+  - `src/components/layout/NotificationBanner.jsx` — Full-width top banner for FCM notifications
+  - `src/components/layout/NotificationTester.jsx` — Test panel in Settings to simulate notifications
+  - `public/sounds/*.wav` — 14 sound files extracted from user's Archive.zip
 - **Files Modified**:
   - `contexts/AppProviders.jsx` — Added NotificationProvider
   - `contexts/index.js` — Exported NotificationProvider + useNotifications
-  - `api/constants.js` — Added REGISTER_DEVICE endpoint
+  - `pages/LoginPage.jsx` — Requests FCM token before login, sends as `fcm_token` in payload
+  - `api/transforms/authTransform.js` — Added `fcm_token` to login request transform
+  - `components/order-entry/OrderEntry.jsx` — Removed "Order Placed" and "Order Updated" local toasts (replaced by FCM push)
+  - `components/panels/SettingsPanel.jsx` — Added "Test Notifications" tile
+  - `pages/DashboardPage.jsx` — Added NotificationBanner component
+
+### FCM Token Flow
+1. User clicks Login → `requestFCMToken()` → browser permission prompt → token obtained
+2. `fcm_token` sent in login API payload alongside email/password
+3. No separate `/register-device` endpoint needed
 
 ### FCM Notification Flow
-1. User clicks Login → FCM token requested (permission prompt) → `fcm_token` sent in login payload
-2. Backend receives `fcm_token` with login credentials — no separate device registration API
-3. Foreground: `onMessage` → processNotification → play sound + add to notification list
-4. Background: Service Worker → native notification + forward to app for sound
-5. Silent notification → stops current playing sound
-6. Logout → cleanup, stop sounds, clear notifications
+1. Foreground: `onMessage` → extract title/body from `payload.notification`, sound from `payload.data.sound` → play sound + show top banner
+2. Background: Service Worker → native browser notification + forward to app for sound
+3. Silent (`data.sound: 'silent'`) → stops any playing sound
+4. Banner: full-width top, auto-dismiss 6s, max 3 stacked
+
+### Backend Webpush Payload Requirement (shared with backend team)
+```php
+'webpush' => [
+    'headers' => ['Urgency' => 'high'],
+    'data' => ['sound' => $basename],  // matches .wav filename without extension
+    'fcm_options' => ['link' => '/dashboard'],
+],
+```
+
+### Pending Verification
+- User needs to confirm browser notification permission is "Allow"
+- Verify `[Firebase] FCM Token obtained` in console after login
+- End-to-end test: notification from another tab/device
+- Confirm `payload.data.sound` arrives from backend after `webpush` addition
 
 ---
 

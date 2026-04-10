@@ -17,8 +17,6 @@
   - A dynamic table name created by the system?
   - A prefix for walk-in customers?
 
-**Screenshot Reference:** See `/app/memory/screenshots/dynamic_table_identifier.png`
-
 **Why it matters:** 
 - Need to understand the data structure to enable search by customer name
 - Currently, tables with such identifiers are not searchable
@@ -45,13 +43,6 @@
 ### 3. Table Number vs Customer Name Mapping
 **Question:** How is the relationship between table identifier and customer name stored?
 
-**Example from UI:**
-```
-Table Header: पq piyush ₹1
-            ↑    ↑      ↑
-            ?   customer amount
-```
-
 **Need to know:**
 - API field for the "पq" part (is it `tableNumber`, `tableName`, `tableId`?)
 - API field for the "piyush" part (is it `customerName`, `guestName`, `customer`?)
@@ -72,17 +63,8 @@ Table Header: पq piyush ₹1
 
 | Feature | Status | Blocker |
 |---------|--------|---------|
-| Search by customer name for dine-in | ⏸️ Blocked | Need Q1, Q2, Q3 answered |
-| Dynamic table search | ⏸️ Blocked | Need data source identified |
-
----
-
-## Document History
-
-| Date | Update |
-|------|--------|
-| 2026-04-10 | Initial creation with dynamic table questions |
-| 2026-04-10 | Added bill collection during preparation clarification |
+| Search by customer name for dine-in | Blocked | Need Q1, Q2, Q3 answered |
+| Dynamic table search | Blocked | Need data source identified |
 
 ---
 
@@ -90,46 +72,32 @@ Table Header: पq piyush ₹1
 
 **Question:** Should users be able to collect bill when the order is still in "Preparing" status?
 
-**Context:**
-- Current order status flow: `Preparing (1) → Ready (2) → Served (3)`
-- Screenshot shows order in "Preparing" status with only Print + Ready button visible
-- "Collect Bill" behavior during preparation is unclear
+**Recommendation:** **Option B (Flexible)** — Allow bill anytime after order placed.
 
-**Options:**
-
-| Option | Behavior | Use Case |
-|--------|----------|----------|
-| A - Strict | Only allow bill after Served | Traditional dine-in, prevent early checkout |
-| **B - Flexible (Recommended)** | Allow bill anytime after order placed | Customer in hurry, prepaid preference, flexibility |
-| C - Configurable | Restaurant setting controls this | Let restaurant decide policy |
-
-**Recommendation:** **Option B (Flexible)**
-
-**Rationale:**
-- Customer may need to leave urgently
-- Some customers prefer paying upfront
-- Prevents blocking scenarios
-- Most POS systems allow bill collection at any stage
-- "Collect Bill" should be available anytime there are placed items
-
-**Pending:** Awaiting confirmation from product/backend team
+**Pending:** Awaiting confirmation from product/backend team.
 
 ---
 
 ## 6. Order Timeline - API Timestamps (RESOLVED)
 
-**Status:** ✅ Implemented
+**Status:** Implemented. API provides timestamps at item level (`ready_at`, `serve_at`). Order-level timestamps computed from items.
 
-**Confirmed:** API provides timestamps at item level (`ready_at`, `serve_at`).
+---
 
-**Implementation:** Order-level timestamps computed from items:
-- `readyAt` = First item ready timestamp
-- `servedAt` = Last item served timestamp
+## 7. FCM Webpush Payload (RESOLVED — shared with backend)
 
-**Files Updated:**
-- `orderTransform.js` - Added computed timestamps
-- `OrderTimeline.jsx` - New component for dot timeline
-- `TableCard.jsx` - Stage-specific time display
+**Status:** Backend payload structure shared. Backend team has added `webpush` section.
+
+**Pending verification:** User needs to confirm FCM notifications arrive with `data.sound` field.
+
+**Required payload:**
+```php
+'webpush' => [
+    'headers' => ['Urgency' => 'high'],
+    'data' => ['sound' => $basename],
+    'fcm_options' => ['link' => '/dashboard'],
+],
+```
 
 ---
 
