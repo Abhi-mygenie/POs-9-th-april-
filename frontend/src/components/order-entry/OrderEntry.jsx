@@ -445,12 +445,8 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         console.log('[PlaceOrder] response:', response.data);
-
-        // Wait for socket update-table (engage) before redirect — same pattern as Update Order
-        const tableId = Number(table?.tableId);
-        if (tableId) {
-          await waitForTableEngaged(tableId, 5000);
-        }
+        // Socket events (update-table engage → new-order) handle all state updates
+        // No need to wait - redirect immediately
       }
 
       // Redirect to dashboard
