@@ -42,7 +42,14 @@ REACT_APP_FIREBASE_VAPID_KEY=<in .env>
 | Top banner UI for notifications (universal color) | `components/layout/NotificationBanner.jsx` | Done |
 | Removed local order success toasts | `OrderEntry.jsx` | Done |
 | Test Notification panel in Settings | `components/layout/NotificationTester.jsx` | Done |
+| Sidebar silent toggle wired to SoundManager | `Sidebar.jsx`, `DashboardPage.jsx` | Done |
 | Wired NotificationProvider into AppProviders | `contexts/AppProviders.jsx` | Done |
+
+### Sidebar Silent Mode Toggle
+- Bell (green) = Ringer On → notification sounds play
+- BellOff (gray) = Silent Mode → banners still show, no sound
+- Uses `soundEnabled` / `setSoundEnabled` from NotificationContext (no prop drilling)
+- `SoundManager.setEnabled(false)` stops current audio + prevents future playback
 
 ### Notification Banner Behavior
 - Full-width banner at top of screen (z-200, fixed)

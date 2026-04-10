@@ -42,6 +42,13 @@
 ],
 ```
 
+### Sidebar Silent Mode Toggle → SoundManager
+- Sidebar Bell/BellOff toggle now wired to `NotificationContext.soundEnabled`
+- Bell (green) = Ringer On → notification sounds play
+- BellOff (gray) = Silent Mode → banners still show, no sound
+- Removed `isSilentMode` prop drilling from `DashboardPage.jsx`
+- `Sidebar.jsx` reads directly from `useNotifications()` context
+
 ### Pending Verification
 - User needs to confirm browser notification permission is "Allow"
 - Verify `[Firebase] FCM Token obtained` in console after login
