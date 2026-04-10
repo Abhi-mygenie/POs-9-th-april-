@@ -44,9 +44,6 @@ export const API_ENDPOINTS = {
   // Split Bill
   SPLIT_ORDER: '/api/v1/vendoremployee/pos/split-order',
 
-  // Device Token Registration (FCM)
-  REGISTER_DEVICE: '/api/v1/vendoremployee/register-device',
-
   // Settings
   CANCELLATION_REASONS: '/api/v1/vendoremployee/cancellation-reasons',
   

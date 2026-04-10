@@ -17,8 +17,8 @@
   - `api/constants.js` — Added REGISTER_DEVICE endpoint
 
 ### FCM Notification Flow
-1. User logs in → Firebase initializes → Requests notification permission → Gets FCM token
-2. FCM token sent to backend via `/api/v1/vendoremployee/register-device`
+1. User clicks Login → FCM token requested (permission prompt) → `fcm_token` sent in login payload
+2. Backend receives `fcm_token` with login credentials — no separate device registration API
 3. Foreground: `onMessage` → processNotification → play sound + add to notification list
 4. Background: Service Worker → native notification + forward to app for sound
 5. Silent notification → stops current playing sound

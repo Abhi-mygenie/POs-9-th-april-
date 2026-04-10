@@ -1,20 +1,13 @@
 // NotificationContext - Manages FCM token, incoming notifications, and sound playback
 import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from './AuthContext';
-import { requestFCMToken, onForegroundMessage } from '../config/firebase';
+import { onForegroundMessage } from '../config/firebase';
 import soundManager from '../utils/soundManager';
-import api from '../api/axios';
-import { API_ENDPOINTS } from '../api/constants';
 
 const NotificationContext = createContext(null);
 
-// Storage key for FCM token
-const FCM_TOKEN_KEY = 'mygenie_fcm_token';
-
 export const NotificationProvider = ({ children }) => {
-  const { isAuthenticated, token: authToken } = useAuth();
-  const [fcmToken, setFcmToken] = useState(null);
-  const [permissionStatus, setPermissionStatus] = useState('default');
+  const { isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const initializedRef = useRef(false);
@@ -55,7 +48,7 @@ export const NotificationProvider = ({ children }) => {
   processNotificationRef.current = processNotification;
 
   // =========================================================================
-  // INITIALIZE FCM ON AUTH
+  // INITIALIZE ON AUTH — preload sounds + listen for messages
   // =========================================================================
   useEffect(() => {
     if (!isAuthenticated || initializedRef.current) return;
@@ -63,24 +56,6 @@ export const NotificationProvider = ({ children }) => {
 
     // Preload sounds
     soundManager.preload();
-
-    const initFCM = async () => {
-      if ('Notification' in window) {
-        setPermissionStatus(Notification.permission);
-      }
-
-      const token = await requestFCMToken();
-      if (token) {
-        setFcmToken(token);
-        const prevToken = localStorage.getItem(FCM_TOKEN_KEY);
-        if (token !== prevToken) {
-          await registerDeviceToken(token);
-          localStorage.setItem(FCM_TOKEN_KEY, token);
-        }
-      }
-    };
-
-    initFCM();
 
     // Listen for foreground messages
     foregroundUnsubRef.current = onForegroundMessage((payload) => {
@@ -120,22 +95,6 @@ export const NotificationProvider = ({ children }) => {
   }, [soundEnabled]);
 
   // =========================================================================
-  // REGISTER DEVICE TOKEN WITH BACKEND
-  // =========================================================================
-  const registerDeviceToken = async (token) => {
-    try {
-      await api.post(API_ENDPOINTS.REGISTER_DEVICE, {
-        device_token: token,
-        device_type: 'web',
-      });
-      console.log('[Notification] Device token registered with backend');
-    } catch (err) {
-      // Not critical - backend may not have this endpoint yet
-      console.warn('[Notification] Token registration failed:', err.readableMessage || err.message);
-    }
-  };
-
-  // =========================================================================
   // PUBLIC METHODS
   // =========================================================================
   const dismissNotification = useCallback((id) => {
@@ -152,24 +111,12 @@ export const NotificationProvider = ({ children }) => {
     );
   }, []);
 
-  const requestPermission = useCallback(async () => {
-    const token = await requestFCMToken();
-    if (token) {
-      setFcmToken(token);
-      setPermissionStatus('granted');
-      await registerDeviceToken(token);
-      localStorage.setItem(FCM_TOKEN_KEY, token);
-    }
-  }, []);
-
   // =========================================================================
   // CONTEXT VALUE
   // =========================================================================
   const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
 
   const value = useMemo(() => ({
-    fcmToken,
-    permissionStatus,
     notifications,
     unreadCount,
     soundEnabled,
@@ -177,10 +124,7 @@ export const NotificationProvider = ({ children }) => {
     dismissNotification,
     clearAll,
     markRead,
-    requestPermission,
   }), [
-    fcmToken,
-    permissionStatus,
     notifications,
     unreadCount,
     soundEnabled,
@@ -188,7 +132,6 @@ export const NotificationProvider = ({ children }) => {
     dismissNotification,
     clearAll,
     markRead,
-    requestPermission,
   ]);
 
   return (

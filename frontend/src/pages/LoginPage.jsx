@@ -5,6 +5,7 @@ import { COLORS, GENIE_LOGO_URL } from "../constants";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../contexts/AuthContext";
 import * as authService from "../api/services/authService";
+import { requestFCMToken } from "../config/firebase";
 
 // Login Screen Component
 const LoginPage = () => {
@@ -49,8 +50,16 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      // Call login via AuthContext (updates state + localStorage)
-      await login({ email, password }, rememberMe);
+      // Get FCM token before login (permission prompt shows here)
+      let fcmToken = null;
+      try {
+        fcmToken = await requestFCMToken();
+      } catch (fcmErr) {
+        console.warn('[Login] FCM token request failed, proceeding without it:', fcmErr.message);
+      }
+
+      // Call login via AuthContext with FCM token in payload
+      await login({ email, password, fcmToken }, rememberMe);
       
       // Navigate to loading screen on success
       navigate("/loading", { replace: true });
