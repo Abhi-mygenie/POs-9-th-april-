@@ -37,10 +37,23 @@ export const requestFCMToken = async () => {
   }
 
   try {
+    // Check current permission state first
+    const currentPermission = Notification.permission;
+    console.log('[Firebase] Current notification permission:', currentPermission);
+    
+    // If already denied, browser won't show popup again
+    if (currentPermission === 'denied') {
+      console.warn('[Firebase] Notification permission was previously DENIED');
+      console.warn('[Firebase] User must manually enable in browser settings: Click 🔒 icon → Site Settings → Notifications → Allow');
+      return { error: 'denied', token: null };
+    }
+
     const permission = await Notification.requestPermission();
+    console.log('[Firebase] Permission result after prompt:', permission);
+    
     if (permission !== 'granted') {
-      console.warn('[Firebase] Notification permission denied');
-      return null;
+      console.warn('[Firebase] Notification permission denied - User will NOT receive push notifications');
+      return { error: 'denied', token: null };
     }
 
     // Register service worker with Firebase config as query params
@@ -63,15 +76,15 @@ export const requestFCMToken = async () => {
     });
 
     if (token) {
-      console.log('[Firebase] FCM Token obtained');
-      return token;
+      console.log('[Firebase] FCM Token obtained:', token.substring(0, 20) + '...');
+      return { error: null, token };
     }
 
     console.warn('[Firebase] No FCM token returned');
-    return null;
+    return { error: 'no_token', token: null };
   } catch (error) {
     console.error('[Firebase] Token error:', error.message);
-    return null;
+    return { error: error.message, token: null };
   }
 };
 

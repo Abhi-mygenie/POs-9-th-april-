@@ -53,11 +53,32 @@ const LoginPage = () => {
       // Get FCM token before login (permission prompt shows here)
       let fcmToken = null;
       try {
-        fcmToken = await requestFCMToken();
+        const fcmResult = await requestFCMToken();
+        console.log('[Login] FCM result:', fcmResult);
+        
+        // Handle new response format { error, token }
+        if (fcmResult && typeof fcmResult === 'object') {
+          fcmToken = fcmResult.token;
+          
+          // Warn user if notifications are denied
+          if (fcmResult.error === 'denied') {
+            toast({
+              title: "Notifications Disabled",
+              description: "You won't receive order alerts. Enable in browser settings (🔒 icon → Notifications → Allow)",
+              variant: "destructive",
+              duration: 8000,
+            });
+          }
+        } else {
+          // Backward compatibility: old format returned token directly
+          fcmToken = fcmResult;
+        }
       } catch (fcmErr) {
         console.warn('[Login] FCM token request failed, proceeding without it:', fcmErr.message);
       }
 
+      console.log('[Login] Proceeding with FCM token:', fcmToken ? 'YES' : 'NO');
+      
       // Call login via AuthContext with FCM token in payload
       await login({ email, password, fcmToken }, rememberMe);
       

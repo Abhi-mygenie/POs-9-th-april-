@@ -33,6 +33,11 @@ export const NotificationProvider = ({ children }) => {
   // PROCESS NOTIFICATION — play sound + show toast + add to list
   // =========================================================================
   const processNotification = useCallback((payload) => {
+    console.log('[Notification] ====== INCOMING NOTIFICATION ======');
+    console.log('[Notification] Full payload:', JSON.stringify(payload, null, 2));
+    console.log('[Notification] payload.notification:', payload.notification);
+    console.log('[Notification] payload.data:', payload.data);
+    
     // Merge data from both payload.notification and payload.data
     const notif = payload.notification || {};
     const data = payload.data || {};
@@ -42,9 +47,13 @@ export const NotificationProvider = ({ children }) => {
     // Determine sound: explicit key > inferred from content
     const soundKey = data.sound || data.notification_sound || '';
     const resolvedSound = soundKey || inferSoundFromContent(title, body);
+    
+    console.log('[Notification] Extracted - title:', title, '| body:', body);
+    console.log('[Notification] Sound - from payload:', soundKey, '| resolved:', resolvedSound);
 
     // Play sound (SoundManager handles silent, unknown keys, etc.)
     if (resolvedSound) {
+      console.log('[Notification] Playing sound:', resolvedSound);
       soundManager.play(resolvedSound);
     }
 
