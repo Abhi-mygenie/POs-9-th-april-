@@ -134,31 +134,51 @@ Valid sound values: `new_order`, `swiggy_new_order`, `confirm_order`, `order_acc
 | Browser notification permission | ✅ Working - Shows popup on first login, warns if denied |
 | FCM Token obtained | ✅ Working - Token sent to backend in login payload |
 | End-to-end notification | ✅ Working - Banner shows, sound plays |
-| `payload.data.sound` from backend | ⚠️ PENDING - Backend not sending `data` object |
+| `payload.data.sound` from backend | ⚠️ PENDING - Backend sends `webpush` but missing `data` section |
 
-### Backend Payload Issue
-**Current payload received:**
-```json
-{
-  "notification": { "title": "...", "body": "..." },
-  "fcmOptions": { "link": "..." }
-}
-```
-- ❌ `data` object is **MISSING**
-- ❌ `data.sound` is **MISSING**
+### Backend Payload Analysis (April 10, 2026)
 
-**Frontend Workaround Active:** `inferSoundFromContent()` guesses sound from title/body text (e.g., "confirm" → `confirm_order` sound). Works but not ideal.
-
-**Backend Action Required:**
+**What Backend Sends:**
 ```php
 'webpush' => [
+    'notification' => ['title' => $title, 'body' => $message],  // ✅ Working
+    'headers' => ['Urgency' => 'high'],                         // ✅ Working
+    'fcm_options' => ['link' => url('/dashboard')],             // ✅ Working
+    // ❌ MISSING: 'data' => ['sound' => 'new_order']
+]
+```
+
+**What Frontend Receives:**
+```json
+{
+  "notification": { "title": "There is a new order", "body": "Order ID: 002336..." },
+  "fcmOptions": { "link": "https://preprod.mygenie.online/dashboard" },
+  "data": undefined  // ← MISSING!
+}
+```
+
+**Why Sound Still Works (Fragile):**
+Frontend has `inferSoundFromContent()` fallback that guesses sound from title/body text:
+- "new order" in title → plays `new_order.wav`
+- "confirm" in title → plays `confirm_order.wav`
+- This is **fragile** — depends on title text matching exactly
+
+**Backend Fix Required — Add `data` section:**
+```php
+'webpush' => [
+    'notification' => ['title' => $title, 'body' => $message],
     'headers' => ['Urgency' => 'high'],
+    'fcm_options' => ['link' => url('/dashboard')],
+    // ⬇️ ADD THIS FOR EXPLICIT SOUND CONTROL
     'data' => [
-        'sound' => 'confirm_order',  // Required for explicit sound
-        'order_id' => '...',
+        'sound' => 'new_order',  // or 'confirm_order', 'order_ready', etc.
+        'order_id' => $orderId,
+        'order_type' => $orderType,
     ],
 ],
 ```
+
+**Valid sound keys:** `new_order`, `swiggy_new_order`, `confirm_order`, `order_accepted`, `order_confirmed`, `order_ready`, `order_rejected`, `attend_table`, `settle_bill`, `item_added`, `five_sec_buzzer`, `ten_sec_buzzer`, `forty_five_sec_buzzer`, `silent`
 
 ### Console Logs Added (Session 9)
 - `[Firebase] Current notification permission: granted|denied|default`

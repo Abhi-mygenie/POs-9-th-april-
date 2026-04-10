@@ -65,11 +65,15 @@
 - Sound resolution logging: `[Notification] Sound - from payload: ... | resolved: ...`
 - User warning toast if notifications denied
 
-### Firebase Notification — Backend Payload Finding
-- **Issue**: Backend FCM payload missing `data` object with `sound` key
-- **Current**: Only `notification.title` and `notification.body` sent
-- **Workaround**: Frontend uses `inferSoundFromContent()` to guess sound from text
-- **Action**: Backend needs to add `webpush.data.sound` to FCM payload
+### Firebase Notification — Backend Payload Analysis
+- **Backend DOES send `webpush`** section (confirmed from backend code)
+- **But missing `webpush.data`** section — only sends `notification`, `headers`, `fcm_options`
+- **Frontend receives:** `payload.notification` ✅, `payload.data` undefined ❌
+- **Sound works via fallback:** `inferSoundFromContent()` guesses sound from title text
+  - "new order" → `new_order.wav`
+  - "confirm" → `confirm_order.wav`
+- **This is fragile** — explicit `webpush.data.sound` is more reliable
+- **Backend fix:** Add `'data' => ['sound' => 'new_order', ...]` inside `webpush` array
 
 ---
 
