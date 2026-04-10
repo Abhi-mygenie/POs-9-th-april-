@@ -42,6 +42,13 @@ export const getTableChannel = (restaurantId) => `update_table_${restaurantId}`;
  */
 export const getAggregatorChannel = (restaurantId) => `aggregator_order_${restaurantId}`;
 
+/**
+ * Generate channel name for order-engage events
+ * @param {number} restaurantId 
+ * @returns {string} e.g., 'order-engage_510'
+ */
+export const getOrderEngageChannel = (restaurantId) => `order-engage_${restaurantId}`;
+
 // =============================================================================
 // EVENT NAMES (sent within the channel message)
 // =============================================================================
@@ -56,6 +63,9 @@ export const SOCKET_EVENTS = {
 
   // Table event - comes through update_table_${restaurantId} channel
   UPDATE_TABLE: 'update-table',
+  
+  // Order engage event - comes through order-engage_${restaurantId} channel
+  ORDER_ENGAGE: 'order-engage',
 };
 
 // =============================================================================

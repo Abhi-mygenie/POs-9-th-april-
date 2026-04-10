@@ -449,6 +449,33 @@ export const handleUpdateTable = (message, { updateTableStatus, setTableEngaged 
 };
 
 // =============================================================================
+// ORDER-ENGAGE HANDLER (New channel)
+// =============================================================================
+
+/**
+ * Handle order-engage event
+ * Message: [order-engage, orderId, restaurantId, status?, payload?]
+ * Action: Log for now - will be used for order-level locking
+ */
+export const handleOrderEngage = (message, context) => {
+  log('INFO', `order-engage received:`, message);
+  
+  // Parse message - structure TBD based on actual backend payload
+  const orderId = message[1];
+  const restaurantId = message[2];
+  const status = message[3];
+  const payload = message[4];
+  
+  log('INFO', `order-engage: orderId=${orderId}, restaurantId=${restaurantId}, status=${status}`);
+  
+  if (payload) {
+    log('INFO', `order-engage payload:`, payload);
+  }
+  
+  // TODO: Implement actual engage/disengage logic once we confirm the message format
+};
+
+// =============================================================================
 // HANDLER REGISTRY
 // =============================================================================
 
@@ -466,6 +493,7 @@ export const getHandler = (eventName) => {
     [SOCKET_EVENTS.SCAN_NEW_ORDER]: handleScanNewOrder,
     [SOCKET_EVENTS.DELIVERY_ASSIGN_ORDER]: handleDeliveryAssignOrder,
     [SOCKET_EVENTS.UPDATE_TABLE]: handleUpdateTable,
+    [SOCKET_EVENTS.ORDER_ENGAGE]: handleOrderEngage,
   };
   
   return handlers[eventName] || null;

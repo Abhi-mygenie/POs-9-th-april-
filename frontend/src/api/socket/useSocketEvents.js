@@ -15,6 +15,7 @@ import {
   SOCKET_EVENTS,
   getOrderChannel,
   getTableChannel,
+  getOrderEngageChannel,
 } from './socketEvents';
 import {
   handleNewOrder,
@@ -24,6 +25,7 @@ import {
   handleScanNewOrder,
   handleDeliveryAssignOrder,
   handleUpdateTable,
+  handleOrderEngage,
 } from './socketHandlers';
 
 /**
@@ -94,6 +96,18 @@ export const useSocketEvents = () => {
     }
   }, []);
 
+  // Order-engage channel handler
+  const handleOrderEngageChannelEvent = useCallback((...args) => {
+    const eventName = args[0];
+    console.log(`[useSocketEvents] Order-engage channel event: ${eventName}`, args);
+    
+    if (eventName === SOCKET_EVENTS.ORDER_ENGAGE) {
+      handleOrderEngage(args, actionsRef.current);
+    } else {
+      console.log(`[useSocketEvents] Unknown order-engage event: ${eventName}`);
+    }
+  }, []);
+
   // ===========================================================================
   // SUBSCRIBE TO ORDER CHANNEL ONLY
   // BUG-203: Table channel removed — table status derived from order data
@@ -117,11 +131,14 @@ export const useSocketEvents = () => {
     const orderChannel = getOrderChannel(restaurantId);
     // Subscribe to table channel (for immediate table status updates)
     const tableChannel = getTableChannel(restaurantId);
+    // Subscribe to order-engage channel (for order-level locking)
+    const orderEngageChannel = getOrderEngageChannel(restaurantId);
     
-    console.log(`[useSocketEvents] Subscribing to channels for restaurant ${restaurantId}: ${orderChannel}, ${tableChannel}`);
+    console.log(`[useSocketEvents] Subscribing to channels for restaurant ${restaurantId}: ${orderChannel}, ${tableChannel}, ${orderEngageChannel}`);
     
     const unsubscribeOrder = subscribe(orderChannel, handleOrderChannelEvent);
     const unsubscribeTable = subscribe(tableChannel, handleTableChannelEvent);
+    const unsubscribeOrderEngage = subscribe(orderEngageChannel, handleOrderEngageChannelEvent);
     
     if (unsubscribeOrder) {
       console.log(`[useSocketEvents] Subscribed to order channel successfully`);
@@ -135,11 +152,18 @@ export const useSocketEvents = () => {
       console.warn('[useSocketEvents] Table channel subscription failed');
     }
     
+    if (unsubscribeOrderEngage) {
+      console.log(`[useSocketEvents] Subscribed to order-engage channel successfully`);
+    } else {
+      console.warn('[useSocketEvents] Order-engage channel subscription failed');
+    }
+    
     // Cleanup on unmount or when restaurantId changes
     return () => {
       console.log('[useSocketEvents] Unsubscribing from channels');
       unsubscribeOrder && unsubscribeOrder();
       unsubscribeTable && unsubscribeTable();
+      unsubscribeOrderEngage && unsubscribeOrderEngage();
     };
   }, [
     isConnected,
@@ -147,6 +171,7 @@ export const useSocketEvents = () => {
     subscribe,
     handleOrderChannelEvent,
     handleTableChannelEvent,
+    handleOrderEngageChannelEvent,
   ]);
 
   // Return connection status and restaurantId for UI feedback
