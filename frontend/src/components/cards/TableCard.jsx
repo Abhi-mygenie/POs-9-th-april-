@@ -61,7 +61,11 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
   // Handle KOT print
   const handlePrintKot = async (e) => {
     e.stopPropagation();
-    if (!table.orderId || isPrintingKot) return;
+    console.log('[TableCard] Print KOT clicked:', { tableId: table.id, orderId: table.orderId, isPrintingKot });
+    if (!table.orderId || isPrintingKot) {
+      console.log('[TableCard] Skipping - orderId missing or already printing');
+      return;
+    }
     
     setIsPrintingKot(true);
     try {
