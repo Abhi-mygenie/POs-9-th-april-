@@ -8,6 +8,9 @@ import { IconButton, TextButton } from "./buttons";
 import { CARD_BASE_STYLE } from "./TableCard.styles";
 import { printOrder } from "../../api/services/orderService";
 import { useToast } from "../../hooks/use-toast";
+import { useMenu } from "../../contexts";
+import { getStationsFromOrderItems } from "../../api/services/stationService";
+import StationPickerModal from "../modals/StationPickerModal";
 
 /**
  * Compute stage-specific time for TableCard
@@ -45,7 +48,7 @@ const computeStageTime = (table) => {
 };
 
 // Table Card Component - Simplified (no expansion, uses modal)
-const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, onConfirmOrder, onCancelOrder, onMarkReady, onMarkServed, isSnoozed, onToggleSnooze, currencySymbol = '₹', isEngaged = false }) => {
+const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, onConfirmOrder, onCancelOrder, onMarkReady, onMarkServed, isSnoozed, onToggleSnooze, currencySymbol = '₹', isEngaged = false, orderItems = null }) => {
   const statusConfig = getTableStatusConfig(table.status);
   const isActive = isTableActive(table.status);
   const hasOrders = ["occupied", "billReady"].includes(table.status);
@@ -53,24 +56,65 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
   
   const orderData = mockOrderItems[table.id] || { waiter: "", items: [] };
   const { toast } = useToast();
+  const { getProductById } = useMenu();
   
   // Loading states for print buttons
   const [isPrintingKot, setIsPrintingKot] = useState(false);
   const [isPrintingBill, setIsPrintingBill] = useState(false);
+  const [showStationPicker, setShowStationPicker] = useState(false);
+  const [availableStations, setAvailableStations] = useState([]);
 
-  // Handle KOT print
+  // Handle KOT print - with station picker
   const handlePrintKot = async (e) => {
     e.stopPropagation();
-    console.log('[TableCard] Print KOT clicked:', { tableId: table.id, orderId: table.orderId, isPrintingKot });
+    console.log('[TableCard] Print KOT clicked:', { tableId: table.id, orderId: table.orderId, isPrintingKot, orderItems });
     if (!table.orderId || isPrintingKot) {
       console.log('[TableCard] Skipping - orderId missing or already printing');
       return;
     }
     
+    // Get items from prop or fallback
+    const items = orderItems?.items || [];
+    
+    if (items.length === 0) {
+      // No items available - print without station (backend will handle)
+      console.log('[TableCard] No order items available, printing without station filter');
+      await executePrintKot(null);
+      return;
+    }
+    
+    // Get stations from order items
+    const stations = getStationsFromOrderItems(items, getProductById);
+    console.log('[TableCard] Stations for KOT:', stations);
+    
+    if (stations.length === 0) {
+      // No stations found - print without station filter
+      await executePrintKot(null);
+      return;
+    }
+    
+    if (stations.length === 1) {
+      // Single station - print directly
+      await executePrintKot([stations[0].station]);
+    } else {
+      // Multiple stations - show picker
+      setAvailableStations(stations);
+      setShowStationPicker(true);
+    }
+  };
+
+  // Execute print KOT with selected stations
+  const executePrintKot = async (selectedStations) => {
+    setShowStationPicker(false);
     setIsPrintingKot(true);
+    
     try {
-      await printOrder(table.orderId, 'kot');
-      toast({ title: "KOT request sent", description: `Order #${table.orderId}` });
+      const stationKot = selectedStations ? selectedStations.join(',') : null;
+      await printOrder(table.orderId, 'kot', stationKot);
+      toast({ 
+        title: "KOT request sent", 
+        description: stationKot ? `Stations: ${stationKot}` : `Order #${table.orderId}` 
+      });
     } catch (error) {
       console.error('[TableCard] KOT print error:', error);
       toast({ title: "Failed to send KOT request", variant: "destructive" });
@@ -352,6 +396,15 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
           </div>
         )}
       </div>
+
+      {/* Station Picker Modal for KOT */}
+      <StationPickerModal
+        isOpen={showStationPicker}
+        onClose={() => setShowStationPicker(false)}
+        onConfirm={executePrintKot}
+        stations={availableStations}
+        isLoading={isPrintingKot}
+      />
     </div>
   );
 };
@@ -383,6 +436,7 @@ TableCard.propTypes = {
   isSnoozed: PropTypes.bool,
   onToggleSnooze: PropTypes.func,
   isEngaged: PropTypes.bool,
+  orderItems: PropTypes.object,
 };
 
 TableCard.defaultProps = {

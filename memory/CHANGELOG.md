@@ -5,31 +5,48 @@
 ### KOT & Bill Manual Printing — COMPLETE
 - Added manual print functionality for KOT and Bill via API
 - **API Endpoint**: `POST /api/v1/vendoremployee/order-temp-store`
-- **Payload**: `{ order_id: <id>, print_type: "kot" | "bill" }`
+- **Payload**: `{ order_id: <id>, print_type: "kot" | "bill", station_kot: "KDS,BAR" }`
+
+### Station Picker Integration — NEW
+- Added `station_kot` parameter to API payload for KOT printing
+- Created `StationPickerModal` component for multi-station selection
+- Created `getStationsFromOrderItems()` utility function
+- Fixed default station: now `null` instead of `"KDS"` (no KOT for items without station)
+
+### Station Logic
+| Scenario | Behavior |
+|----------|----------|
+| Single station | Print directly, no picker shown |
+| Multiple stations | Show picker modal with checkboxes |
+| No stations | Show error toast or print without station filter |
 
 ### Button Mapping
 | Location | Button | Action |
 |----------|--------|--------|
-| TableCard (Dashboard) | 🖨️ Printer icon | Print KOT |
+| TableCard (Dashboard) | Printer icon | Print KOT (with station picker if needed) |
 | TableCard (Dashboard) | Bill (green) | Print Bill |
-| OrderCard (Dashboard) | 🖨️ Printer icon | Print KOT |
+| OrderCard (Dashboard) | Printer icon | Print KOT (with station picker if needed) |
 | OrderCard (Dashboard) | Bill (green) | Print Bill |
-| OrderEntry Cart Panel | Re-Print | Print KOT |
+| OrderEntry Cart Panel | Re-Print | Print KOT (with station picker if needed) |
 
 ### Files Modified
 - `api/constants.js` — Added `PRINT_ORDER` endpoint
-- `api/services/orderService.js` — Added `printOrder(orderId, printType)` function
-- `components/cards/TableCard.jsx` — Wired printer icon → KOT, Bill button → Bill print
-- `components/cards/OrderCard.jsx` — Wired printer icon → KOT, Bill button → Bill print
-- `components/order-entry/RePrintButton.jsx` — Wired Re-Print button to API
-- `components/order-entry/CartPanel.jsx` — Added `orderId` prop, passed to RePrintOnlyButton
-- `components/order-entry/OrderEntry.jsx` — Passes `placedOrderId` to CartPanel
+- `api/services/orderService.js` — Added `printOrder(orderId, printType, stationKot)` function
+- `api/services/stationService.js` — Added `getStationsFromOrderItems()` utility
+- `api/transforms/productTransform.js` — Fixed station default to `null`
+- `components/cards/TableCard.jsx` — Station picker integration
+- `components/cards/OrderCard.jsx` — Station picker integration
+- `components/order-entry/RePrintButton.jsx` — Station picker integration
+- `components/order-entry/CartPanel.jsx` — Pass `cartItems` to RePrintOnlyButton
+- `pages/DashboardPage.jsx` — Pass `orderItems` to TableCard
+
+### New Files Created
+- `components/modals/StationPickerModal.jsx` — Multi-select station picker modal
 
 ### UX Behavior
 - Button disabled during API call (loading state)
-- Success toast: "KOT request sent" / "Bill request sent"
-- Error toast: "Failed to send print request"
-- Note: Actual print confirmation from printer agent is Phase 2
+- Success toast: "KOT request sent - Stations: KDS,BAR"
+- Error toast: "Failed to send KOT request" or "No KOT stations"
 
 ### Bug Fix
 - **Bill button on cards** — Previously opened Collect Payment panel, now correctly prints bill only

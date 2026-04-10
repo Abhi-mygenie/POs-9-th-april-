@@ -4,6 +4,9 @@ import { COLORS, SOURCE_COLORS } from "../../constants";
 import OrderTimeline from "./OrderTimeline";
 import { printOrder } from "../../api/services/orderService";
 import { useToast } from "../../hooks/use-toast";
+import { useMenu } from "../../contexts";
+import { getStationsFromOrderItems } from "../../api/services/stationService";
+import StationPickerModal from "../modals/StationPickerModal";
 
 /**
  * Unified Order Card - Handles Dine-In, TakeAway, Delivery, Room
@@ -45,7 +48,10 @@ const OrderCard = ({
   const [showAddress, setShowAddress] = useState(false);
   const [isPrintingKot, setIsPrintingKot] = useState(false);
   const [isPrintingBill, setIsPrintingBill] = useState(false);
+  const [showStationPicker, setShowStationPicker] = useState(false);
+  const [availableStations, setAvailableStations] = useState([]);
   const { toast } = useToast();
+  const { getProductById } = useMenu();
 
   if (!order) return null;
 
@@ -57,16 +63,41 @@ const OrderCard = ({
   const isRoom = orderType === "room" || order.isRoom;
   const orderId = order.orderId || order.id;
   const fOrderStatus = order.fOrderStatus || 1;
+  const items = order.items || [];
 
-  // Handle KOT print
+  // Handle KOT print - with station picker
   const handlePrintKot = async (e) => {
     e.stopPropagation();
     if (!orderId || isPrintingKot) return;
     
+    // Get stations from order items
+    const stations = getStationsFromOrderItems(items, getProductById);
+    console.log('[OrderCard] Stations for KOT:', stations);
+    
+    if (stations.length === 0) {
+      toast({ title: "No KOT stations", description: "No items with stations found", variant: "destructive" });
+      return;
+    }
+    
+    if (stations.length === 1) {
+      // Single station - print directly
+      await executePrintKot([stations[0].station]);
+    } else {
+      // Multiple stations - show picker
+      setAvailableStations(stations);
+      setShowStationPicker(true);
+    }
+  };
+
+  // Execute print KOT with selected stations
+  const executePrintKot = async (selectedStations) => {
+    setShowStationPicker(false);
     setIsPrintingKot(true);
+    
     try {
-      await printOrder(orderId, 'kot');
-      toast({ title: "KOT request sent", description: `Order #${orderId}` });
+      const stationKot = selectedStations.join(',');
+      await printOrder(orderId, 'kot', stationKot);
+      toast({ title: "KOT request sent", description: `Stations: ${stationKot}` });
     } catch (error) {
       console.error('[OrderCard] KOT print error:', error);
       toast({ title: "Failed to send KOT request", variant: "destructive" });
@@ -92,8 +123,7 @@ const OrderCard = ({
     }
   };
 
-  // Items grouped by status
-  const items = order.items || [];
+  // Items grouped by status (items already defined above)
   const activeItems = items.filter(i => i.status !== "served" && i.status !== "cancelled");
   const servedItems = items.filter(i => i.status === "served");
 
@@ -614,6 +644,15 @@ const OrderCard = ({
           </div>
         )}
       </div>
+
+      {/* Station Picker Modal for KOT */}
+      <StationPickerModal
+        isOpen={showStationPicker}
+        onClose={() => setShowStationPicker(false)}
+        onConfirm={executePrintKot}
+        stations={availableStations}
+        isLoading={isPrintingKot}
+      />
     </div>
   );
 };

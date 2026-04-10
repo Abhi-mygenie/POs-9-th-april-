@@ -1216,6 +1216,7 @@ const DashboardPage = () => {
                         onToggleSnooze={toggleSnooze}
                         currencySymbol={currencySymbol}
                         isEngaged={isTableEngaged(item.tableId)}
+                        orderItems={orderItemsByTableId[item.tableId]}
                       />
                     ))}
                   </div>

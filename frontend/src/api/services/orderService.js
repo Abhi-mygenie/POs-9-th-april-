@@ -88,13 +88,20 @@ export const splitOrder = async (orderId, splitCount, splits) => {
  * Print KOT or Bill for an order
  * @param {number|string} orderId - Order ID
  * @param {string} printType - "kot" | "bill"
+ * @param {string} stationKot - Comma-separated station names (e.g., "KDS,BAR") - required for KOT
  * @returns {Promise<Object>} - API response
  */
-export const printOrder = async (orderId, printType) => {
+export const printOrder = async (orderId, printType, stationKot = null) => {
   const payload = {
     order_id: Number(orderId),
     print_type: printType,
   };
+  
+  // Add station_kot for KOT print type
+  if (printType === 'kot' && stationKot) {
+    payload.station_kot = stationKot;
+  }
+  
   console.log('[PrintOrder] payload:', payload);
   const response = await api.post(API_ENDPOINTS.PRINT_ORDER, payload);
   console.log('[PrintOrder] response:', response.data);

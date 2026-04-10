@@ -38,6 +38,63 @@ export const extractUniqueStations = (products) => {
 };
 
 /**
+ * Get stations with item counts from order items
+ * Looks up each item's station from the products catalog
+ * 
+ * @param {Array} orderItems - Order items array (from order.items or cart)
+ * @param {Function} getProductById - Function to get product by ID from MenuContext
+ * @returns {Array} - Array of { station, itemCount, items } objects
+ */
+export const getStationsFromOrderItems = (orderItems, getProductById) => {
+  if (!Array.isArray(orderItems) || !getProductById) {
+    console.log('[StationService] getStationsFromOrderItems: Invalid params');
+    return [];
+  }
+
+  const stationMap = new Map(); // station -> { items: [], count: 0 }
+
+  orderItems.forEach(item => {
+    // Get foodId from various possible locations
+    const foodId = item.foodId || item.food_id || item.food_details?.id || item.productId;
+    
+    if (!foodId) {
+      console.log('[StationService] Item has no foodId:', item);
+      return;
+    }
+
+    // Look up product in catalog
+    const product = getProductById(Number(foodId));
+    const station = product?.station;
+
+    if (!station) {
+      console.log(`[StationService] No station for foodId ${foodId}, skipping`);
+      return; // No KOT for items without station
+    }
+
+    const quantity = item.quantity || item.qty || 1;
+    const itemName = item.name || item.foodName || item.food_details?.name || product?.productName || 'Unknown';
+
+    if (!stationMap.has(station)) {
+      stationMap.set(station, { items: [], count: 0 });
+    }
+
+    const stationData = stationMap.get(station);
+    stationData.items.push({ foodId, name: itemName, quantity });
+    stationData.count += quantity;
+  });
+
+  // Convert to array format
+  const result = Array.from(stationMap.entries()).map(([station, data]) => ({
+    station,
+    itemCount: data.count,
+    items: data.items,
+  })).sort((a, b) => a.station.localeCompare(b.station));
+
+  console.log('[StationService] getStationsFromOrderItems result:', result);
+  return result;
+};
+
+/**
  * Get station view config from localStorage
  * @returns {Object} Station view configuration
  */
@@ -173,6 +230,8 @@ export default {
   getStationViewConfig,
   fetchStationData,
   fetchMultipleStationsData,
+  extractUniqueStations,
+  getStationsFromOrderItems,
   STATION_VIEW_STORAGE_KEY,
   DEFAULT_STATION_VIEW_CONFIG,
 };
