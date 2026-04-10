@@ -1,10 +1,26 @@
-// NotificationContext - Manages FCM token, incoming notifications, and sound playback
+// NotificationContext - Manages incoming notifications, sound playback, and toast display
 import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { onForegroundMessage } from '../config/firebase';
 import soundManager from '../utils/soundManager';
+import { toast } from '../hooks/use-toast';
 
 const NotificationContext = createContext(null);
+
+// Infer sound from notification title/body when no explicit sound key
+const inferSoundFromContent = (title = '', body = '') => {
+  const text = `${title} ${body}`.toLowerCase();
+  if (text.includes('new order')) return 'new_order';
+  if (text.includes('swiggy')) return 'swiggy_new_order';
+  if (text.includes('confirm')) return 'confirm_order';
+  if (text.includes('accepted')) return 'order_accepted';
+  if (text.includes('rejected') || text.includes('cancelled')) return 'order_rejected';
+  if (text.includes('ready')) return 'order_ready';
+  if (text.includes('served') || text.includes('attend')) return 'attend_table';
+  if (text.includes('bill') || text.includes('payment') || text.includes('settle')) return 'settle_bill';
+  if (text.includes('item') && text.includes('added')) return 'item_added';
+  return 'new_order'; // default fallback
+};
 
 export const NotificationProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -15,25 +31,40 @@ export const NotificationProvider = ({ children }) => {
   const processNotificationRef = useRef(null);
 
   // =========================================================================
-  // PROCESS NOTIFICATION — play sound + add to list
+  // PROCESS NOTIFICATION — play sound + show toast + add to list
   // =========================================================================
-  const processNotification = useCallback((data) => {
+  const processNotification = useCallback((payload) => {
+    // Merge data from both payload.notification and payload.data
+    const notif = payload.notification || {};
+    const data = payload.data || {};
+    const title = data.title || notif.title || 'Notification';
+    const body = data.body || notif.body || '';
+
+    // Determine sound: explicit key > inferred from content
     const soundKey = data.sound || data.notification_sound || '';
+    const resolvedSound = soundKey || inferSoundFromContent(title, body);
 
     // Play sound (SoundManager handles silent, unknown keys, etc.)
-    if (soundKey) {
-      soundManager.play(soundKey);
+    if (resolvedSound) {
+      soundManager.play(resolvedSound);
     }
 
-    // Don't add silent notifications to the list
-    if (soundKey === 'silent') return;
+    // Silent notification: stop sound, don't show anything
+    if (resolvedSound === 'silent') return;
+
+    // Show toast notification
+    toast({
+      title: title,
+      description: body,
+      duration: 6000,
+    });
 
     const notification = {
       id: Date.now().toString(),
-      title: data.title || 'Notification',
-      body: data.body || '',
+      title,
+      body,
       type: data.type || data.notification_type || '',
-      sound: soundKey,
+      sound: resolvedSound,
       orderId: data.order_id || data.orderId || '',
       tableId: data.table_id || data.tableId || '',
       channel: data.channel || data.order_type || '',
@@ -57,18 +88,18 @@ export const NotificationProvider = ({ children }) => {
     // Preload sounds
     soundManager.preload();
 
-    // Listen for foreground messages
+    // Listen for foreground messages — pass full payload
     foregroundUnsubRef.current = onForegroundMessage((payload) => {
       console.log('[Notification] Foreground message:', payload);
-      const data = payload.data || {};
-      processNotificationRef.current?.(data);
+      processNotificationRef.current?.(payload);
     });
 
     // Listen for background messages forwarded by service worker
     const handleSWMessage = (event) => {
       if (event.data?.type === 'BACKGROUND_NOTIFICATION') {
         console.log('[Notification] SW forwarded message:', event.data.payload);
-        processNotificationRef.current?.(event.data.payload);
+        // Wrap SW data into same shape as foreground payload
+        processNotificationRef.current?.({ data: event.data.payload });
       }
     };
     navigator.serviceWorker?.addEventListener('message', handleSWMessage);
