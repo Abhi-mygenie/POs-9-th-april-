@@ -147,6 +147,7 @@ export const NotificationProvider = ({ children }) => {
     dismissNotification,
     clearAll,
     markRead,
+    simulateNotification: processNotification,
   }), [
     notifications,
     unreadCount,
@@ -155,6 +156,7 @@ export const NotificationProvider = ({ children }) => {
     dismissNotification,
     clearAll,
     markRead,
+    processNotification,
   ]);
 
   return (
