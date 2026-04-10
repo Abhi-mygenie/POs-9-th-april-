@@ -34,6 +34,20 @@
 ### Bug Fix
 - **Bill button on cards** — Previously opened Collect Payment panel, now correctly prints bill only
 
+### Firebase Notification — Console Logs Added
+- Added detailed logging for FCM debugging
+- Permission status logging: `[Firebase] Current notification permission: granted|denied|default`
+- Token logging: `[Firebase] FCM Token obtained: xxx...`
+- Payload logging: `[Notification] Full payload: { ... }`
+- Sound resolution logging: `[Notification] Sound - from payload: ... | resolved: ...`
+- User warning toast if notifications denied
+
+### Firebase Notification — Backend Payload Finding
+- **Issue**: Backend FCM payload missing `data` object with `sound` key
+- **Current**: Only `notification.title` and `notification.body` sent
+- **Workaround**: Frontend uses `inferSoundFromContent()` to guess sound from text
+- **Action**: Backend needs to add `webpush.data.sound` to FCM payload
+
 ---
 
 ## Apr 10, 2026 — Session 8 (Firebase Cloud Messaging Phase 1)

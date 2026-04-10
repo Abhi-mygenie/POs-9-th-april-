@@ -128,21 +128,45 @@ Valid sound values: `new_order`, `swiggy_new_order`, `confirm_order`, `order_acc
 
 ## What's Left to Close FCM Phase 1
 
-### Pending Verification (User Action)
-1. **Browser notification permission** — User needs to reset to "Ask" if previously denied, then re-login and click "Allow"
-2. **Verify `[Firebase] FCM Token obtained`** appears in console after login
-3. **Verify FCM token reaches backend** — Check backend logs that `fcm_token` is received in login payload
-4. **End-to-end test** — Place order from Tab A, verify Tab B shows banner + plays sound
-5. **Verify `webpush.data.sound`** arrives in `payload.data.sound` — Check console log for `[Notification] Foreground message`
+### Verification Status (April 10, 2026)
+| Item | Status |
+|------|--------|
+| Browser notification permission | ✅ Working - Shows popup on first login, warns if denied |
+| FCM Token obtained | ✅ Working - Token sent to backend in login payload |
+| End-to-end notification | ✅ Working - Banner shows, sound plays |
+| `payload.data.sound` from backend | ⚠️ PENDING - Backend not sending `data` object |
 
-### If Sound Doesn't Play
-- Check `payload.data.sound` value matches one of the 14 valid sound keys
-- If `data` is empty/missing → backend `webpush` section not added correctly
+### Backend Payload Issue
+**Current payload received:**
+```json
+{
+  "notification": { "title": "...", "body": "..." },
+  "fcmOptions": { "link": "..." }
+}
+```
+- ❌ `data` object is **MISSING**
+- ❌ `data.sound` is **MISSING**
 
-### Code Changes Needed (Minor)
-- Remove `inferSoundFromContent()` hack — play default sound if no `data.sound` (or no sound at all)
-- Remove color mapping from banner — use universal color only
-- These are ~10 line changes, will do once verification confirms FCM is flowing
+**Frontend Workaround Active:** `inferSoundFromContent()` guesses sound from title/body text (e.g., "confirm" → `confirm_order` sound). Works but not ideal.
+
+**Backend Action Required:**
+```php
+'webpush' => [
+    'headers' => ['Urgency' => 'high'],
+    'data' => [
+        'sound' => 'confirm_order',  // Required for explicit sound
+        'order_id' => '...',
+    ],
+],
+```
+
+### Console Logs Added (Session 9)
+- `[Firebase] Current notification permission: granted|denied|default`
+- `[Firebase] FCM Token obtained: xxx...`
+- `[Login] FCM result: { error, token }`
+- `[Notification] ====== INCOMING NOTIFICATION ======`
+- `[Notification] Full payload: { ... }`
+- `[Notification] Sound - from payload: ... | resolved: ...`
 
 ---
 
