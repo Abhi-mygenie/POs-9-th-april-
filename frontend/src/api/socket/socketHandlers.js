@@ -199,10 +199,11 @@ export const handleNewOrder = (message, { addOrder, updateTableStatus, setTableE
 
 /**
  * Handle update-order event
- * Message: [update-order, order_id, restaurant_id, f_order_status]
- * Action: Fetch order from API, UPDATE in OrderContext
+ * Message: [update-order, order_id, restaurant_id, f_order_status, payload?]
+ * Action: Use socket payload to UPDATE OrderContext (no GET API needed)
+ * Auto-release: setOrderEngaged(orderId, false) after context update
  */
-export const handleUpdateOrder = async (message, { updateOrder, updateTableStatus, getOrderById, setTableEngaged }) => {
+export const handleUpdateOrder = async (message, { updateOrder, updateTableStatus, getOrderById, setTableEngaged, setOrderEngaged }) => {
   const parsed = parseMessage(message);
   
   if (!parsed) {
@@ -210,7 +211,7 @@ export const handleUpdateOrder = async (message, { updateOrder, updateTableStatu
     return;
   }
   
-  const { orderId } = parsed;
+  const { orderId, payload } = parsed;
   log('INFO', `update-order received: ${orderId}`);
   
   // Guard: skip if order was already removed (cancelled/paid)
@@ -219,22 +220,47 @@ export const handleUpdateOrder = async (message, { updateOrder, updateTableStatu
     return;
   }
   
-  const order = await fetchOrderWithRetry(orderId);
+  let order = null;
+  
+  // Check if socket has payload (v2 API provides complete order data)
+  if (payload && payload.orders && Array.isArray(payload.orders) && payload.orders.length > 0) {
+    // Use socket payload directly - no GET API needed
+    try {
+      order = orderFromAPI.order(payload.orders[0]);
+      log('INFO', `update-order: Using socket payload for order ${orderId}`);
+    } catch (error) {
+      log('ERROR', `update-order: Transform failed for socket payload`, error.message);
+    }
+  }
+  
+  // Fallback to GET API if no payload (backwards compatibility)
+  if (!order) {
+    log('INFO', `update-order: No socket payload, fetching from API`);
+    order = await fetchOrderWithRetry(orderId);
+  }
+  
   if (order) {
     updateOrder(order.orderId, order);
     syncTableStatus(order, updateTableStatus);
     log('INFO', `update-order: Updated order ${order.orderId}`);
-    // Release engaged after React commits and browser paints the state updates
-    if (setTableEngaged && order.tableId) {
+    
+    // Auto-release order engaged after context update
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
+        // Release order engage
+        if (setOrderEngaged) {
+          setOrderEngaged(order.orderId, false);
+          log('INFO', `update-order: Order ${order.orderId} released from ENGAGED`);
+        }
+        // Also release table engage (if applicable)
+        if (setTableEngaged && order.tableId) {
           setTableEngaged(order.tableId, false);
           log('INFO', `update-order: Table ${order.tableId} released from ENGAGED`);
-        });
+        }
       });
-    }
+    });
   } else {
-    log('WARN', `update-order: Could not fetch order ${orderId}, skipping`);
+    log('WARN', `update-order: Could not get order ${orderId}, skipping`);
   }
 };
 
@@ -454,25 +480,40 @@ export const handleUpdateTable = (message, { updateTableStatus, setTableEngaged 
 
 /**
  * Handle order-engage event
- * Message: [order-engage, orderId, restaurantId, status?, payload?]
- * Action: Log for now - will be used for order-level locking
+ * Message format: [orderId, restaurantOrderId, restaurantId, status]
+ * Example: [730762, '008639', 644, 'engage']
+ * 
+ * Action: 
+ * - 'engage' → Lock order card (show spinner), not clickable
+ * - 'free' → Unlock order card (if needed, but typically auto-released after update-order)
  */
 export const handleOrderEngage = (message, context) => {
-  log('INFO', `order-engage received:`, message);
+  const { setOrderEngaged } = context;
   
-  // Parse message - structure TBD based on actual backend payload
-  const orderId = message[1];
+  // Parse message - format: [orderId, restaurantOrderId, restaurantId, status]
+  const orderId = Number(message[0]);
+  const restaurantOrderId = message[1];
   const restaurantId = message[2];
   const status = message[3];
-  const payload = message[4];
   
-  log('INFO', `order-engage: orderId=${orderId}, restaurantId=${restaurantId}, status=${status}`);
+  log('INFO', `order-engage received: orderId=${orderId}, restaurantOrderId=${restaurantOrderId}, status=${status}`);
   
-  if (payload) {
-    log('INFO', `order-engage payload:`, payload);
+  if (!setOrderEngaged) {
+    log('ERROR', 'order-engage: setOrderEngaged not available in context');
+    return;
   }
   
-  // TODO: Implement actual engage/disengage logic once we confirm the message format
+  if (status === 'engage') {
+    // Lock order card - show spinner, not clickable
+    setOrderEngaged(orderId, true);
+    log('INFO', `order-engage: Order ${orderId} ENGAGED (locked)`);
+  } else if (status === 'free') {
+    // Unlock order card (if backend sends 'free' explicitly)
+    setOrderEngaged(orderId, false);
+    log('INFO', `order-engage: Order ${orderId} FREED (unlocked)`);
+  } else {
+    log('WARN', `order-engage: Unknown status "${status}" for order ${orderId}`);
+  }
 };
 
 // =============================================================================

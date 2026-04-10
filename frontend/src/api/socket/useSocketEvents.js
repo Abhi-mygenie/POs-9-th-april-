@@ -34,7 +34,7 @@ import {
  */
 export const useSocketEvents = () => {
   const { subscribe, isConnected } = useSocket();
-  const { addOrder, updateOrder, removeOrder, getOrderById } = useOrders();
+  const { addOrder, updateOrder, removeOrder, getOrderById, setOrderEngaged } = useOrders();
   const { updateTableStatus, setTableEngaged } = useTables();
   const { restaurant } = useRestaurant();
   
@@ -43,12 +43,12 @@ export const useSocketEvents = () => {
   
   // Use refs to avoid stale closures in event handlers
   // All handlers now receive both order + table actions (BUG-203)
-  const actionsRef = useRef({ addOrder, updateOrder, removeOrder, getOrderById, updateTableStatus, setTableEngaged });
+  const actionsRef = useRef({ addOrder, updateOrder, removeOrder, getOrderById, updateTableStatus, setTableEngaged, setOrderEngaged });
   
   // Update ref when context functions change
   useEffect(() => {
-    actionsRef.current = { addOrder, updateOrder, removeOrder, getOrderById, updateTableStatus, setTableEngaged };
-  }, [addOrder, updateOrder, removeOrder, getOrderById, updateTableStatus, setTableEngaged]);
+    actionsRef.current = { addOrder, updateOrder, removeOrder, getOrderById, updateTableStatus, setTableEngaged, setOrderEngaged };
+  }, [addOrder, updateOrder, removeOrder, getOrderById, updateTableStatus, setTableEngaged, setOrderEngaged]);
 
   // ===========================================================================
   // CHANNEL EVENT HANDLER
@@ -97,15 +97,12 @@ export const useSocketEvents = () => {
   }, []);
 
   // Order-engage channel handler
+  // Message format: [orderId, restaurantOrderId, restaurantId, status]
+  // Note: No event name at index 0, different from other channels
   const handleOrderEngageChannelEvent = useCallback((...args) => {
-    const eventName = args[0];
-    console.log(`[useSocketEvents] Order-engage channel event: ${eventName}`, args);
-    
-    if (eventName === SOCKET_EVENTS.ORDER_ENGAGE) {
-      handleOrderEngage(args, actionsRef.current);
-    } else {
-      console.log(`[useSocketEvents] Unknown order-engage event: ${eventName}`);
-    }
+    console.log(`[useSocketEvents] Order-engage channel event:`, args);
+    // Pass directly to handler - format is different (no event name prefix)
+    handleOrderEngage(args, actionsRef.current);
   }, []);
 
   // ===========================================================================
