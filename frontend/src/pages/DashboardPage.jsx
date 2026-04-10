@@ -255,7 +255,6 @@ const DashboardPage = () => {
   const [cartsByTable, setCartsByTable] = useState({});
   const [sidebarExpanded, setSidebarExpanded] = useState(false); // Default collapsed on login
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSilentMode, setIsSilentMode] = useState(false);
   const [snoozedOrders, setSnoozedOrders] = useState(new Set());
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -1049,8 +1048,6 @@ const DashboardPage = () => {
       <Sidebar
         isExpanded={sidebarExpanded}
         setIsExpanded={setSidebarExpanded}
-        isSilentMode={isSilentMode}
-        setIsSilentMode={setIsSilentMode}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenMenu={() => setIsMenuOpen(true)}
         onRefresh={handleRefreshAll}

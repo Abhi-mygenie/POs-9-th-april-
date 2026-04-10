@@ -9,6 +9,7 @@ import {
 import { COLORS, GENIE_LOGO_URL } from "../../constants";
 import { useAuth, useRestaurant, useMenu, useTables, useSettings } from "../../contexts";
 import { useOrders } from "../../contexts";
+import { useNotifications } from "../../contexts/NotificationContext";
 import { useToast } from "../../hooks/use-toast";
 
 // Permission mapping for sidebar items
@@ -111,8 +112,6 @@ const sidebarMenuItems = [
 const Sidebar = ({ 
   isExpanded, 
   setIsExpanded, 
-  isSilentMode, 
-  setIsSilentMode, 
   onOpenSettings, 
   onOpenMenu, 
   onRefresh, 
@@ -132,6 +131,7 @@ const Sidebar = ({
   const { clearTables } = useTables();
   const { clearSettings } = useSettings();
   const { clearOrders } = useOrders();
+  const { soundEnabled, setSoundEnabled } = useNotifications();
 
   const [expandedSections, setExpandedSections] = useState({});
   const [activeItem, setActiveItem] = useState("dashboard");
@@ -429,24 +429,24 @@ const Sidebar = ({
         {/* Silent Mode Toggle */}
         <button
           data-testid="sidebar-silent-toggle"
-          onClick={() => setIsSilentMode(!isSilentMode)}
+          onClick={() => setSoundEnabled(!soundEnabled)}
           className={`w-full flex items-center gap-3 px-2 py-2.5 mb-3 rounded-lg transition-colors ${
             isExpanded ? "justify-start" : "justify-center"
           }`}
           style={{ 
-            backgroundColor: isSilentMode ? `${COLORS.grayText}15` : `${COLORS.primaryGreen}15`,
-            color: isSilentMode ? COLORS.grayText : COLORS.primaryGreen,
+            backgroundColor: !soundEnabled ? `${COLORS.grayText}15` : `${COLORS.primaryGreen}15`,
+            color: !soundEnabled ? COLORS.grayText : COLORS.primaryGreen,
           }}
-          title={!isExpanded ? (isSilentMode ? "Silent Mode" : "Ringer On") : undefined}
+          title={!isExpanded ? (!soundEnabled ? "Silent Mode" : "Ringer On") : undefined}
         >
-          {isSilentMode ? (
+          {!soundEnabled ? (
             <BellOff className="w-5 h-5 flex-shrink-0" />
           ) : (
             <Bell className="w-5 h-5 flex-shrink-0" />
           )}
           {isExpanded && (
             <span className="text-sm font-medium">
-              {isSilentMode ? "Silent Mode" : "Ringer On"}
+              {!soundEnabled ? "Silent Mode" : "Ringer On"}
             </span>
           )}
         </button>
