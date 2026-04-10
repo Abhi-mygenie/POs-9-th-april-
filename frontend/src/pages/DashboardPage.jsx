@@ -21,6 +21,7 @@ import { toAPI as orderToAPI } from "../api/transforms/orderTransform";
 import { updateOrderStatus } from "../api/services/orderService";
 import { ChannelColumnsLayout } from "../components/dashboard";
 import { StationPanel } from "../components/station-view";
+import NotificationBanner from "../components/layout/NotificationBanner";
 
 // Helper: search a list of items by id, customer/guest, and phone fields
 const searchItems = (items, query, getFields) => {
@@ -1044,6 +1045,7 @@ const DashboardPage = () => {
       className="flex min-h-screen"
       style={{ backgroundColor: COLORS.sectionBg }}
     >
+      <NotificationBanner />
       <Sidebar
         isExpanded={sidebarExpanded}
         setIsExpanded={setSidebarExpanded}

@@ -3,7 +3,6 @@ import { createContext, useContext, useEffect, useState, useCallback, useMemo, u
 import { useAuth } from './AuthContext';
 import { onForegroundMessage } from '../config/firebase';
 import soundManager from '../utils/soundManager';
-import { toast } from '../hooks/use-toast';
 
 const NotificationContext = createContext(null);
 
@@ -51,13 +50,6 @@ export const NotificationProvider = ({ children }) => {
 
     // Silent notification: stop sound, don't show anything
     if (resolvedSound === 'silent') return;
-
-    // Show toast notification
-    toast({
-      title: title,
-      description: body,
-      duration: 6000,
-    });
 
     const notification = {
       id: Date.now().toString(),

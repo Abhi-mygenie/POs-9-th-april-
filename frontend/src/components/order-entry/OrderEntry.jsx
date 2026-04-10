@@ -416,7 +416,6 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
         });
         const response = await api.put(API_ENDPOINTS.UPDATE_ORDER, payload);
         console.log('[UpdateOrder] response:', response.data);
-        toast({ title: "Order Updated", description: "Items sent to kitchen" });
 
         // Wait for socket update-table (engage) before redirect
         const tableId = Number(effectiveTable?.tableId);
@@ -442,7 +441,6 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         console.log('[PlaceOrder] response:', response.data);
-        toast({ title: "Order Placed", description: "Order sent to kitchen" });
 
         // Wait for socket update-table (engage) before redirect — same pattern as Update Order
         const tableId = Number(table?.tableId);
