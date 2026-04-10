@@ -333,7 +333,7 @@ const buildCartItem = (item) => {
     add_on_qtys:         addonQtys,
     variations:          variations,
     add_ons:             [],
-    station:             (item.station || 'KDS').toUpperCase(),
+    station:             item.station ? item.station.toUpperCase() : null,  // null if no station (no KOT)
     food_amount:         foodAmount,
     variation_amount:    variationAmount,
     addon_amount:        addonAmount,

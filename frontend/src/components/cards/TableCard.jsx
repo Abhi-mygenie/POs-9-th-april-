@@ -67,14 +67,18 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
   // Handle KOT print - with station picker
   const handlePrintKot = async (e) => {
     e.stopPropagation();
-    console.log('[TableCard] Print KOT clicked:', { tableId: table.id, orderId: table.orderId, isPrintingKot, orderItems });
+    console.log('[TableCard] Print KOT clicked:', { tableId: table.id, orderId: table.orderId, isPrintingKot });
+    console.log('[TableCard] orderItems prop:', orderItems);
+    console.log('[TableCard] table.items:', table.items);
+    
     if (!table.orderId || isPrintingKot) {
       console.log('[TableCard] Skipping - orderId missing or already printing');
       return;
     }
     
-    // Get items from prop or fallback
-    const items = orderItems?.items || [];
+    // Get items from orderItems prop OR fallback to table.items (for walkIn/TakeAway/Delivery)
+    const items = orderItems?.items || table.items || [];
+    console.log('[TableCard] Items for station lookup:', items.length, 'items');
     
     if (items.length === 0) {
       // No items available - print without station (backend will handle)
@@ -89,15 +93,18 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
     
     if (stations.length === 0) {
       // No stations found - print without station filter
+      console.log('[TableCard] No stations found, printing without station filter');
       await executePrintKot(null);
       return;
     }
     
     if (stations.length === 1) {
       // Single station - print directly
+      console.log('[TableCard] Single station, printing directly:', stations[0].station);
       await executePrintKot([stations[0].station]);
     } else {
       // Multiple stations - show picker
+      console.log('[TableCard] Multiple stations, showing picker');
       setAvailableStations(stations);
       setShowStationPicker(true);
     }

@@ -12,6 +12,12 @@
 - Created `StationPickerModal` component for multi-station selection
 - Created `getStationsFromOrderItems()` utility function
 - Fixed default station: now `null` instead of `"KDS"` (no KOT for items without station)
+- Fixed walkIn/TakeAway/Delivery orders: now fallback to `table.items` when `orderItems` is undefined
+- Added console logs for Auto KOT station debugging
+
+### Bug Fix: orderItemsByTableId excludes walkIn
+- `orderItemsByTableId` explicitly excludes walkIn orders (`if (!order.isWalkIn)`)
+- Fixed by adding fallback: `orderItems?.items || table.items || []`
 
 ### Station Logic
 | Scenario | Behavior |

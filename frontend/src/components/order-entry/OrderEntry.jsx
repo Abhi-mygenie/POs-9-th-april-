@@ -434,6 +434,10 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
           cartItems, effectiveCustomer, orderType,
           { restaurantId: restaurant?.id, orderNotes, total, printAllKOT }
         );
+        
+        // Log station info for Auto KOT debugging
+        const cartStations = payload.cart?.map(item => ({ food_id: item.food_id, station: item.station }));
+        console.log('[PlaceOrder] Auto KOT - Cart stations:', cartStations);
         console.log('[PlaceOrder] payload:', JSON.stringify(payload, null, 2));
         const formData = new FormData();
         formData.append('data', JSON.stringify(payload));
