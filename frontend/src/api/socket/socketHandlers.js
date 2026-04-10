@@ -203,7 +203,7 @@ export const handleNewOrder = (message, { addOrder, updateTableStatus, setTableE
  * Action: Use socket payload to UPDATE OrderContext (no GET API needed)
  * Auto-release: setOrderEngaged(orderId, false) after context update
  */
-export const handleUpdateOrder = async (message, { updateOrder, updateTableStatus, getOrderById, setTableEngaged, setOrderEngaged }) => {
+export const handleUpdateOrder = async (message, { updateOrder, updateTableStatus, getOrderById, setOrderEngaged }) => {
   const parsed = parseMessage(message);
   
   if (!parsed) {
@@ -247,15 +247,10 @@ export const handleUpdateOrder = async (message, { updateOrder, updateTableStatu
     // Auto-release order engaged after context update
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        // Release order engage
+        // Release order engage only (table engage handled by order-engage channel)
         if (setOrderEngaged) {
           setOrderEngaged(order.orderId, false);
           log('INFO', `update-order: Order ${order.orderId} released from ENGAGED`);
-        }
-        // Also release table engage (if applicable)
-        if (setTableEngaged && order.tableId) {
-          setTableEngaged(order.tableId, false);
-          log('INFO', `update-order: Table ${order.tableId} released from ENGAGED`);
         }
       });
     });
