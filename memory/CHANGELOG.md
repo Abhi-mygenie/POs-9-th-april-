@@ -1,5 +1,31 @@
 # Changelog
 
+## Apr 10, 2026 — Session 8 (Firebase Cloud Messaging Phase 1)
+
+### Firebase FCM Phase 1 — COMPLETE
+- Installed Firebase SDK (`firebase@12.12.0`)
+- All Firebase config stored in `.env` (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId, measurementId, VAPID key)
+- **Files Created**:
+  - `src/config/firebase.js` — Firebase init from env, token request, foreground message listener
+  - `public/firebase-messaging-sw.js` — Service Worker for background push notifications (receives data payload, shows native notification, forwards to app for sound)
+  - `src/utils/soundManager.js` — Audio manager: preloads 14 wav files, plays chime/ringer, silent overrides (stops), no looping
+  - `src/contexts/NotificationContext.jsx` — FCM token lifecycle, notification processing, sound triggering, device token registration with backend
+  - `public/sounds/*.wav` — 14 sound files (new_order, confirm_order, order_accepted, order_confirmed, order_ready, order_rejected, attend_table, settle_bill, item_added, swiggy_new_order, five_sec_buzzer, ten_sec_buzzer, forty_five_sec_buzzer, silent)
+- **Files Modified**:
+  - `contexts/AppProviders.jsx` — Added NotificationProvider
+  - `contexts/index.js` — Exported NotificationProvider + useNotifications
+  - `api/constants.js` — Added REGISTER_DEVICE endpoint
+
+### FCM Notification Flow
+1. User logs in → Firebase initializes → Requests notification permission → Gets FCM token
+2. FCM token sent to backend via `/api/v1/vendoremployee/register-device`
+3. Foreground: `onMessage` → processNotification → play sound + add to notification list
+4. Background: Service Worker → native notification + forward to app for sound
+5. Silent notification → stops current playing sound
+6. Logout → cleanup, stop sounds, clear notifications
+
+---
+
 ## Apr 10, 2026 — Session 7 (UX Overhaul, Compact Headers, Order Timeline)
 
 ### Initial Setup
