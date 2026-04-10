@@ -44,6 +44,9 @@ export const API_ENDPOINTS = {
   // Split Bill
   SPLIT_ORDER: '/api/v1/vendoremployee/pos/split-order',
 
+  // Print Operations (KOT/Bill)
+  PRINT_ORDER: '/api/v1/vendoremployee/order-temp-store',
+
   // Settings
   CANCELLATION_REASONS: '/api/v1/vendoremployee/cancellation-reasons',
   

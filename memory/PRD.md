@@ -1,7 +1,7 @@
 # MyGenie POS Frontend - PRD
 
 ## Original Problem Statement
-Pull code from https://github.com/Abhi-mygenie/POs-9-th-april-.git branch `v3--payments-`. React frontend only. Build as-is.
+Pull code from https://github.com/Abhi-mygenie/POs-9-th-april-.git branch `v5-firebase`. React frontend only. Build as-is.
 
 ## Environment Configuration
 ```
@@ -29,6 +29,38 @@ REACT_APP_FIREBASE_VAPID_KEY=<in .env>
 ---
 
 ## Features Implemented
+
+### KOT & Bill Manual Printing — (COMPLETE April 10, 2026)
+| Component | File | Status |
+|-----------|------|--------|
+| Print API endpoint constant | `api/constants.js` | Done |
+| printOrder service function | `api/services/orderService.js` | Done |
+| TableCard printer icon → KOT | `components/cards/TableCard.jsx` | Done |
+| TableCard Bill button → Print Bill | `components/cards/TableCard.jsx` | Done |
+| OrderCard printer icon → KOT | `components/cards/OrderCard.jsx` | Done |
+| OrderCard Bill button → Print Bill | `components/cards/OrderCard.jsx` | Done |
+| Re-Print button → KOT | `components/order-entry/RePrintButton.jsx` | Done |
+| CartPanel passes orderId | `components/order-entry/CartPanel.jsx` | Done |
+
+#### Button Mapping
+| Location | Button | Action | API Payload |
+|----------|--------|--------|-------------|
+| Dashboard Cards (Table/Order View) | 🖨️ Printer icon | Manual KOT | `{ order_id, print_type: "kot" }` |
+| Dashboard Cards (Table/Order View) | **Bill** (solid green) | Manual Bill print | `{ order_id, print_type: "bill" }` |
+| OrderEntry Cart Panel | Re-Print | Manual KOT | `{ order_id, print_type: "kot" }` |
+
+#### API Endpoint
+```
+POST /api/v1/vendoremployee/order-temp-store
+Authorization: Bearer <token>
+{ "order_id": <id>, "print_type": "kot" | "bill" }
+```
+
+#### UX Behavior
+- Button disabled during API call (loading state)
+- Success toast: "KOT request sent" / "Bill request sent"
+- Error toast: "Failed to send print request"
+- Note: This sends request to printer agent via backend socket — actual print confirmation is Phase 2
 
 ### Firebase Cloud Messaging — Phase 1 (COMPLETE)
 | Component | File | Status |

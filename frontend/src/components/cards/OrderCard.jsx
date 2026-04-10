@@ -2,6 +2,8 @@ import { useState } from "react";
 import { User, X, ChevronDown, ChevronUp, MapPin, Clock, Printer, ShoppingBag, Bike, Utensils, DoorOpen, Circle, CheckCircle2, Check, FileText, GitMerge, ArrowLeftRight, CornerRightUp, Loader2 } from "lucide-react";
 import { COLORS, SOURCE_COLORS } from "../../constants";
 import OrderTimeline from "./OrderTimeline";
+import { printOrder } from "../../api/services/orderService";
+import { useToast } from "../../hooks/use-toast";
 
 /**
  * Unified Order Card - Handles Dine-In, TakeAway, Delivery, Room
@@ -41,6 +43,9 @@ const OrderCard = ({
 }) => {
   const [showServed, setShowServed] = useState(false);
   const [showAddress, setShowAddress] = useState(false);
+  const [isPrintingKot, setIsPrintingKot] = useState(false);
+  const [isPrintingBill, setIsPrintingBill] = useState(false);
+  const { toast } = useToast();
 
   if (!order) return null;
 
@@ -52,6 +57,40 @@ const OrderCard = ({
   const isRoom = orderType === "room" || order.isRoom;
   const orderId = order.orderId || order.id;
   const fOrderStatus = order.fOrderStatus || 1;
+
+  // Handle KOT print
+  const handlePrintKot = async (e) => {
+    e.stopPropagation();
+    if (!orderId || isPrintingKot) return;
+    
+    setIsPrintingKot(true);
+    try {
+      await printOrder(orderId, 'kot');
+      toast({ title: "KOT request sent", description: `Order #${orderId}` });
+    } catch (error) {
+      console.error('[OrderCard] KOT print error:', error);
+      toast({ title: "Failed to send KOT request", variant: "destructive" });
+    } finally {
+      setIsPrintingKot(false);
+    }
+  };
+
+  // Handle Bill print
+  const handlePrintBill = async (e) => {
+    e.stopPropagation();
+    if (!orderId || isPrintingBill) return;
+    
+    setIsPrintingBill(true);
+    try {
+      await printOrder(orderId, 'bill');
+      toast({ title: "Bill request sent", description: `Order #${orderId}` });
+    } catch (error) {
+      console.error('[OrderCard] Bill print error:', error);
+      toast({ title: "Failed to send Bill request", variant: "destructive" });
+    } finally {
+      setIsPrintingBill(false);
+    }
+  };
 
   // Items grouped by status
   const items = order.items || [];
@@ -506,18 +545,19 @@ const OrderCard = ({
         ) : (
           /* Normal flow: [KOT] [Cancel] ... [Ready/Serve/Bill] for ALL order types */
           <div className="flex items-center w-full">
-            {/* Left: Print + Cancel */}
+            {/* Left: Print KOT + Cancel */}
             <div className="flex items-center gap-3">
-              {/* Print Bill button - permission gated (print_icon) */}
+              {/* Print KOT button - permission gated (print_icon) */}
               {canPrintBill && (
               <button
-                data-testid={`print-bill-btn-${orderId}`}
-                className="min-h-[44px] min-w-[44px] rounded-lg border flex items-center justify-center opacity-70 cursor-not-allowed"
+                data-testid={`print-kot-btn-${orderId}`}
+                className={`min-h-[44px] min-w-[44px] rounded-lg border flex items-center justify-center ${isPrintingKot ? 'opacity-50' : ''}`}
                 style={{ borderColor: COLORS.borderGray, color: COLORS.darkText }}
-                title="Print bill coming in next phase"
-                onClick={(e) => e.stopPropagation()}
+                title="Print KOT"
+                onClick={handlePrintKot}
+                disabled={isPrintingKot}
               >
-                <Printer className="w-5 h-5" />
+                {isPrintingKot ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
               </button>
               )}
 
@@ -562,12 +602,13 @@ const OrderCard = ({
             {fOrderStatus === 5 && canBill && (
               <button
                 data-testid={`bill-btn-${orderId}`}
-                className="min-h-[44px] px-6 text-sm font-bold rounded-lg"
+                className={`min-h-[44px] px-6 text-sm font-bold rounded-lg ${isPrintingBill ? 'opacity-50' : ''}`}
                 style={{ backgroundColor: COLORS.primaryGreen, color: "white" }}
-                onClick={() => onBillClick?.(order)}
-                title="Collect Bill"
+                onClick={handlePrintBill}
+                disabled={isPrintingBill}
+                title="Print Bill"
               >
-                Bill
+                {isPrintingBill ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Bill'}
               </button>
             )}
           </div>

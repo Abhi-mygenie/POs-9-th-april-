@@ -265,6 +265,7 @@ const CartPanel = ({
   orderType,
   walkInTableName = "",
   onWalkInTableNameChange,
+  orderId = null,
 }) => {
   const { enableDynamicTables } = useSettings();
   const newItemCount = cartItems.filter(i => !i.placed).length;
@@ -545,7 +546,7 @@ const CartPanel = ({
               <div key={`${item.id}-${index}`}>
                 {showKotSeparator && canPrintBill && (
                   <div className="px-4 py-2" style={{ borderBottom: `1px solid ${COLORS.borderGray}` }}>
-                    <RePrintOnlyButton />
+                    <RePrintOnlyButton orderId={orderId} />
                   </div>
                 )}
                 {item.placed ? (
@@ -580,7 +581,7 @@ const CartPanel = ({
         {/* Re-Print at end of placed items - ONLY if there are placed items and NO new items after */}
         {canPrintBill && cartItems.some(i => i.placed) && !cartItems.some(i => !i.placed) && (
           <div className="px-4 py-3">
-            <RePrintOnlyButton />
+            <RePrintOnlyButton orderId={orderId} />
           </div>
         )}
 

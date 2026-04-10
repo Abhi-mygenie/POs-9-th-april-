@@ -984,6 +984,7 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
                 orderType={orderType}
                 walkInTableName={walkInTableName}
                 onWalkInTableNameChange={setWalkInTableName}
+                orderId={placedOrderId}
               />
             </>
           )}

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Printer, Clock, X, Check, PlusSquare, ShoppingBag, Bike, Utensils, DoorOpen, Loader2 } from "lucide-react";
 import PropTypes from 'prop-types';
 import { COLORS, CONFIG } from "../../constants";
@@ -6,6 +6,8 @@ import { mockOrderItems } from "../../data";
 import { getTableStatusConfig, isTableActive } from "../../utils";
 import { IconButton, TextButton } from "./buttons";
 import { CARD_BASE_STYLE } from "./TableCard.styles";
+import { printOrder } from "../../api/services/orderService";
+import { useToast } from "../../hooks/use-toast";
 
 /**
  * Compute stage-specific time for TableCard
@@ -50,6 +52,45 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
   const isYetToConfirm = table.status === "yetToConfirm";
   
   const orderData = mockOrderItems[table.id] || { waiter: "", items: [] };
+  const { toast } = useToast();
+  
+  // Loading states for print buttons
+  const [isPrintingKot, setIsPrintingKot] = useState(false);
+  const [isPrintingBill, setIsPrintingBill] = useState(false);
+
+  // Handle KOT print
+  const handlePrintKot = async (e) => {
+    e.stopPropagation();
+    if (!table.orderId || isPrintingKot) return;
+    
+    setIsPrintingKot(true);
+    try {
+      await printOrder(table.orderId, 'kot');
+      toast({ title: "KOT request sent", description: `Order #${table.orderId}` });
+    } catch (error) {
+      console.error('[TableCard] KOT print error:', error);
+      toast({ title: "Failed to send KOT request", variant: "destructive" });
+    } finally {
+      setIsPrintingKot(false);
+    }
+  };
+
+  // Handle Bill print
+  const handlePrintBill = async (e) => {
+    e.stopPropagation();
+    if (!table.orderId || isPrintingBill) return;
+    
+    setIsPrintingBill(true);
+    try {
+      await printOrder(table.orderId, 'bill');
+      toast({ title: "Bill request sent", description: `Order #${table.orderId}` });
+    } catch (error) {
+      console.error('[TableCard] Bill print error:', error);
+      toast({ title: "Failed to send Bill request", variant: "destructive" });
+    } finally {
+      setIsPrintingBill(false);
+    }
+  };
 
   // Memoize dynamic styles to prevent unnecessary re-renders
   // Border color is neutral gray for all cards (status shown via labels/buttons)
@@ -202,11 +243,12 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
                   <>
                     <IconButton
                       icon={Printer}
-                      onClick={() => {/* Print KOT - integrate with printer service */}}
+                      onClick={handlePrintKot}
                       backgroundColor={COLORS.borderGray}
                       testId={`print-btn-${table.id}`}
                       title="Print KOT"
                       ariaLabel={`Print KOT for table ${table.id}`}
+                      disabled={isPrintingKot}
                     />
                     <TextButton
                       onClick={() => onMarkReady?.(table)}
@@ -226,11 +268,12 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
                   <>
                     <IconButton
                       icon={Printer}
-                      onClick={() => {/* Print KOT - integrate with printer service */}}
+                      onClick={handlePrintKot}
                       backgroundColor={COLORS.borderGray}
                       testId={`print-btn-${table.id}`}
                       title="Print KOT"
                       ariaLabel={`Print KOT for table ${table.id}`}
+                      disabled={isPrintingKot}
                     />
                     <TextButton
                       onClick={() => onMarkServed?.(table)}
@@ -250,18 +293,20 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
                   <>
                     <IconButton
                       icon={Printer}
-                      onClick={() => {/* Print KOT - integrate with printer service */}}
+                      onClick={handlePrintKot}
                       backgroundColor={COLORS.borderGray}
                       testId={`print-btn-${table.id}`}
                       title="Print KOT"
                       ariaLabel={`Print KOT for table ${table.id}`}
+                      disabled={isPrintingKot}
                     />
                     <TextButton
-                      onClick={() => onBillClick?.(table)}
+                      onClick={handlePrintBill}
                       testId={`collect-btn-${table.id}`}
-                      ariaLabel={`Collect payment for table ${table.id}`}
+                      ariaLabel={`Print Bill for table ${table.id}`}
                       fullWidth={false}
                       className="flex-1 text-xs py-2"
+                      disabled={isPrintingBill}
                     >
                       {table.isRoom ? 'C/Out' : 'Bill'}
                     </TextButton>

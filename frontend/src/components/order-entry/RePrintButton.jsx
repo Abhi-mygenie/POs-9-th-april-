@@ -1,17 +1,40 @@
-import { Printer } from "lucide-react";
+import { Printer, Loader2 } from "lucide-react";
 import { COLORS } from "../../constants";
 import { useRestaurant } from "../../contexts";
 import { useState, useEffect } from "react";
+import { printOrder } from "../../api/services/orderService";
+import { useToast } from "../../hooks/use-toast";
 
-// Re-Print button only (for placed items)
-export const RePrintOnlyButton = () => {
+// Re-Print button only (for placed items) - Now wired to API
+export const RePrintOnlyButton = ({ orderId }) => {
+  const [isPrinting, setIsPrinting] = useState(false);
+  const { toast } = useToast();
+
+  const handlePrintKot = async () => {
+    if (!orderId || isPrinting) return;
+    
+    setIsPrinting(true);
+    try {
+      await printOrder(orderId, 'kot');
+      toast({ title: "KOT request sent", description: `Order #${orderId}` });
+    } catch (error) {
+      console.error('[RePrint] KOT print error:', error);
+      toast({ title: "Failed to send KOT request", variant: "destructive" });
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
   return (
     <button 
-      className="flex items-center gap-2 px-4 py-2 rounded-full border"
+      className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isPrinting ? 'opacity-50' : ''}`}
       style={{ borderColor: COLORS.borderGray, color: COLORS.primaryGreen }}
       data-testid="reprint-kot-btn"
+      onClick={handlePrintKot}
+      disabled={isPrinting || !orderId}
+      title={orderId ? "Re-Print KOT" : "Save order first to re-print"}
     >
-      <Printer className="w-4 h-4" />
+      {isPrinting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
       <span className="text-sm font-medium">Re-Print</span>
     </button>
   );
