@@ -1,5 +1,41 @@
 # Changelog
 
+## Apr 10, 2026 — Session 9 (KOT & Bill Manual Printing)
+
+### KOT & Bill Manual Printing — COMPLETE
+- Added manual print functionality for KOT and Bill via API
+- **API Endpoint**: `POST /api/v1/vendoremployee/order-temp-store`
+- **Payload**: `{ order_id: <id>, print_type: "kot" | "bill" }`
+
+### Button Mapping
+| Location | Button | Action |
+|----------|--------|--------|
+| TableCard (Dashboard) | 🖨️ Printer icon | Print KOT |
+| TableCard (Dashboard) | Bill (green) | Print Bill |
+| OrderCard (Dashboard) | 🖨️ Printer icon | Print KOT |
+| OrderCard (Dashboard) | Bill (green) | Print Bill |
+| OrderEntry Cart Panel | Re-Print | Print KOT |
+
+### Files Modified
+- `api/constants.js` — Added `PRINT_ORDER` endpoint
+- `api/services/orderService.js` — Added `printOrder(orderId, printType)` function
+- `components/cards/TableCard.jsx` — Wired printer icon → KOT, Bill button → Bill print
+- `components/cards/OrderCard.jsx` — Wired printer icon → KOT, Bill button → Bill print
+- `components/order-entry/RePrintButton.jsx` — Wired Re-Print button to API
+- `components/order-entry/CartPanel.jsx` — Added `orderId` prop, passed to RePrintOnlyButton
+- `components/order-entry/OrderEntry.jsx` — Passes `placedOrderId` to CartPanel
+
+### UX Behavior
+- Button disabled during API call (loading state)
+- Success toast: "KOT request sent" / "Bill request sent"
+- Error toast: "Failed to send print request"
+- Note: Actual print confirmation from printer agent is Phase 2
+
+### Bug Fix
+- **Bill button on cards** — Previously opened Collect Payment panel, now correctly prints bill only
+
+---
+
 ## Apr 10, 2026 — Session 8 (Firebase Cloud Messaging Phase 1)
 
 ### Firebase FCM Phase 1 — COMPLETE

@@ -1,7 +1,7 @@
 # API Document v2 — POS Frontend API Reference
 
-**Version:** 3.4 (Payment Methods Mapping consolidated)
-**Last Updated:** April 9, 2026
+**Version:** 3.5 (Print KOT/Bill API added)
+**Last Updated:** April 10, 2026
 
 ## Endpoint Summary
 
@@ -19,6 +19,53 @@
 | **10** | **Profile + Permissions + Restaurant Config** | `/api/v2/vendoremployee/vendor-profile/profile` | GET | — |
 | **11** | **Split Bill** | `/api/v1/vendoremployee/pos/split-order` | POST | `application/json` |
 | **12** | **Payment Methods Mapping** | — | — | See Section 12 |
+| **13** | **Print KOT/Bill** | `/api/v1/vendoremployee/order-temp-store` | POST | `application/json` |
+
+---
+
+## 13. Print KOT/Bill API (NEW - April 10, 2026)
+
+**Endpoint:** `POST /api/v1/vendoremployee/order-temp-store`
+
+**Purpose:** Send print request (KOT or Bill) to the printer agent via backend socket
+
+**Content-Type:** `application/json`
+
+### Payload
+
+```json
+{
+  "order_id": 730650,
+  "print_type": "kot"
+}
+```
+
+| Field | Type | Values | Description |
+|-------|------|--------|-------------|
+| `order_id` | number | Order ID | The order to print |
+| `print_type` | string | `"kot"` \| `"bill"` | Type of print job |
+
+### Response
+
+```json
+{
+  "message": "Print job sent successfully"
+}
+```
+
+### Frontend Usage
+
+| Location | Button | print_type |
+|----------|--------|------------|
+| TableCard / OrderCard | 🖨️ Printer icon | `"kot"` |
+| TableCard / OrderCard | Bill (green button) | `"bill"` |
+| OrderEntry Cart Panel | Re-Print | `"kot"` |
+
+### Notes
+- This API sends the print request to backend
+- Backend emits socket event to printer agent
+- Actual print confirmation is not returned (Phase 2 feature)
+- Frontend shows toast: "KOT request sent" / "Bill request sent"
 
 ---
 
