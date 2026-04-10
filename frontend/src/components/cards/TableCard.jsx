@@ -70,14 +70,15 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
     console.log('[TableCard] Print KOT clicked:', { tableId: table.id, orderId: table.orderId, isPrintingKot });
     console.log('[TableCard] orderItems prop:', orderItems);
     console.log('[TableCard] table.items:', table.items);
+    console.log('[TableCard] table.order?.items:', table.order?.items);
     
     if (!table.orderId || isPrintingKot) {
       console.log('[TableCard] Skipping - orderId missing or already printing');
       return;
     }
     
-    // Get items from orderItems prop OR fallback to table.items (for walkIn/TakeAway/Delivery)
-    const items = orderItems?.items || table.items || [];
+    // Get items from orderItems prop OR fallback to table.items OR table.order.items (for walkIn/TakeAway/Delivery)
+    const items = orderItems?.items || table.items || table.order?.items || [];
     console.log('[TableCard] Items for station lookup:', items.length, 'items');
     
     if (items.length === 0) {
