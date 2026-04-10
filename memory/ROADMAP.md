@@ -97,13 +97,58 @@
 
 ---
 
-## P0 — Must Fix Now
+## P0 — Must Fix Now (Socket-First Migration)
 
-### 2. Add `setTableEngaged` to `handleItemStatusChange` (GAP 1)
-- **What:** Item-level Ready/Serve has no table spinner during API call
-- **Why:** `handleItemStatusChange` never calls `setTableEngaged`
-- **Fix:** Add engage before API call, release on error
-- **Files:** `DashboardPage.jsx`
+### TASK-A: Remove ALL Local Locking (No-Socket Hardcoding)
+- **What:** Remove all `waitForTableEngaged`, `setTableEngaged`, and local engage/free calls that aren't driven by socket events
+- **Principle:** Locking should ONLY come from socket events. Zero local locking.
+- **Locations to clean:**
+
+| # | File | What to Remove |
+|---|------|---------------|
+| 1 | `OrderEntry.jsx:423` | `waitForTableEngaged(tableId, 5000)` — Update Order path |
+| 2 | `OrderEntry.jsx:464` | `waitForTableEngaged(tableId, 10000)` — New Order path |
+| 3 | `OrderEntry.jsx:540` | `waitForTableEngaged(tableId, 5000)` — Cancel Food path |
+| 4 | `OrderEntry.jsx:792` | `setTableEngaged(tableId, true)` — Collect Bill local engage |
+| 5 | `socketHandlers.js (handleUpdateFoodStatus)` | Local `setTableEngaged` workaround (lines 301-320) |
+| 6 | `socketHandlers.js (handleUpdateOrderStatus)` | Local `setTableEngaged(false)` release (lines 370-373) |
+| 7 | `socketHandlers.js (handleUpdateTable)` | BUG-216 `free→engage` workaround (line 462) |
+| 8 | `DashboardPage.jsx:975-981` | Local `setTableEngaged` in `handleMarkReady` |
+| 9 | `DashboardPage.jsx:994-1000` | Local `setTableEngaged` in `handleMarkServed` |
+| 10 | `TableContext.jsx:72-94` | Remove `waitForTableEngaged()` function entirely |
+
+- **Replace with:** Flow-specific waits based on socket event map (see TASK-B)
+- **Status:** TODO
+
+### TASK-B: Implement Flow-Specific Wait Logic
+- **What:** Replace blanket `waitForTableEngaged` with correct wait per flow
+- **Socket Event Map (verified from console logs):**
+
+| Flow | Socket Lock Event | Frontend Wait Before Redirect |
+|------|-------------------|-------------------------------|
+| New Order + table | `update-table engage` | Wait for table engage |
+| New Order + walk-in | None | No wait (0.5s delay) |
+| Update Order | `order-engage` | Wait for order engage |
+| Transfer Order | `update-table engage` (dest) + `free` (source) | Fire & close — no wait |
+| Transfer Food Item | None (2x `update-order` only) | Fire & close — no wait |
+| Cancel Food Item + table | `update-table engage` (currently `free`) | Wait for table engage |
+| Cancel Food Item + no table | TBD | TBD |
+| Collect Bill | TBD | TBD |
+| Mark Ready/Served | TBD | TBD |
+
+- **Status:** TODO
+
+### TASK-C: Transfer Order Socket-First (PARKED)
+- **What:** Validate and refactor Transfer Order flow after backend sends socket payload
+- **Current state:** Backend v1 sends `update-order` WITHOUT payload → HTTP GET fallback
+- **Endpoint:** `POST /api/v1/vendoremployee/order/transfer-order` (stays v1)
+- **Scenarios tested:**
+  - Table→Table (5583→5535, 5509→5511)
+  - Walk-in→Table (0→5510)
+  - Takeaway→Takeaway — logs pending
+- **Socket events received:** `update-table engage` (dest) + `update-table free` (source) + `update-order` (no payload)
+- **Transfer-aware logic needed:** Detect old tableId vs new tableId, free source, set dest occupied
+- **Status:** PARKED — waiting for backend v2 or further testing
 
 ---
 
@@ -113,12 +158,6 @@
 - **What:** Block-click on engaged table checks String vs Number → never matches
 - **Fix:** `Number(tableEntry.tableId || tableEntry.id)` in comparison
 - **Files:** `DashboardPage.jsx`
-
-### 5. Remove BUG-216 free→engage Workaround (GAP 5)
-- **What:** Shift/Merge source table permanently locked
-- **Prerequisite:** GAP 1 must be fixed first
-- **Fix:** Let `free` genuinely free the table in `handleUpdateTable`
-- **Files:** `socketHandlers.js`
 
 ---
 
@@ -167,3 +206,7 @@
 9. **Status Filter IDs:** pending (7), preparing (1), ready (2), running (8), served (5), pendingPayment (9), paid (6), cancelled (3), reserved (10)
 10. **Cards are independent:** All state is managed via Context (OrderContext, TableContext). View layer just groups and filters - no data modification.
 11. **Header UX (Option A):** Icon toggles are confusing when clustered. Labeled dropdowns (`[Table ▾]`, `[Channel ▾]`) with dynamic labels and checkmarks are much clearer. Only one dropdown open at a time. Close on outside click.
+12. **Socket-first principle:** ALL UI locking must come from socket events. Zero local `setTableEngaged`/`waitForTableEngaged`. Each flow waits for its specific socket event (table engage, order engage, or no wait).
+13. **Endpoint versioning:** v1 endpoints don't send socket payloads. v2 endpoints do. Don't blindly upgrade to v2 — confirm with backend first.
+14. **Workflow:** User triggers action in browser → pastes console.log output → agent analyzes chronological order of socket events (timestamps matter!) → proposes changes → user approves → code update.
+15. **DO NOT run testing agent.** User explicitly requested manual log-based analysis only.

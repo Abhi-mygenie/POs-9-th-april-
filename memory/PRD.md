@@ -194,7 +194,28 @@ Frontend has `inferSoundFromContent()` fallback that guesses sound from title/bo
 1. Dynamic table search — blocked on backend data structure clarification
 2. Bill collection during Preparing stage — awaiting product decision
 
+## Socket-First Migration Status (April 11, 2026)
+
+### Completed ✅
+| Flow | Endpoint | Socket Payload? | Status |
+|------|----------|----------------|--------|
+| New Order | v2 place-order | ✅ Yes | Socket-first complete |
+| Update Order | v2 update-place-order | ✅ Yes | Socket-first complete |
+
+### Audited — Pending Implementation
+| Flow | Endpoint | Socket Payload? | Status |
+|------|----------|----------------|--------|
+| Transfer Order | v1 transfer-order | ❌ No | Parked — HTTP GET fallback |
+| Transfer Food Item | v1 transfer-food-item | ❌ No | Fire & close |
+| Cancel Food Item | v1 cancel-food-item | ❌ No | Needs local locking cleanup |
+
+### Next Steps (TASK-A, TASK-B in ROADMAP)
+- Remove ALL local locking (10 locations across 4 files)
+- Implement flow-specific wait logic
+- Remove BUG-216 workaround (backend fix confirmed)
+
 ## Upcoming Tasks
+- **Socket-First Cleanup**: TASK-A (remove local locking) + TASK-B (flow-specific waits) — see ROADMAP.md
 - **FCM Phase 2**: Color mapping per notification type, actionable UI (Accept/Reject), deep linking, table highlighting, buzzer loop logic
 - Station API context investigation (P2)
 

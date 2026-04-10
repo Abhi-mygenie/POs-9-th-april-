@@ -101,7 +101,35 @@
 
 ---
 
-*Please update this document with answers or direct to relevant API documentation.*
+## 11. Socket Event Map Per Flow (April 11, 2026)
+
+**Verified from user console logs across all order mutation flows:**
+
+| Flow | Socket Events Received | Socket Lock Event | Has Payload? |
+|------|----------------------|-------------------|-------------|
+| **New Order (table)** | `update-table engage` → `new-order` (payload) | `update-table engage` | ✅ Yes (51 keys) |
+| **New Order (walk-in)** | `new-order` (payload) | None | ✅ Yes |
+| **Update Order** | `order-engage` → `update-order` (payload) | `order-engage` | ✅ Yes |
+| **Transfer Order** | `update-table engage` (dest) + `update-table free` (src) + `update-order` | `update-table engage` (dest only) | ❌ No (v1) |
+| **Transfer Food Item** | 2x `update-order` (source + target) | None | ❌ No (v1) |
+| **Cancel Food Item** | `update-table free` + `update-order-status` | `update-table free` (should be engage) | ❌ No (v1) |
+
+**Key insight:** v2 endpoints send payloads in socket, v1 endpoints do not. Transfer Order, Transfer Food, Cancel Food all stay v1.
+
+---
+
+## 12. Local Locking Audit (April 11, 2026)
+
+**Principle established:** Locking must ONLY come from socket events. All local locking to be removed.
+
+**What "local locking" means:** Frontend code calling `setTableEngaged(true)` or `waitForTableEngaged()` without a corresponding socket event triggering it.
+
+**Correct approach per flow:**
+- If `update-table engage` will arrive → wait for it
+- If `order-engage` will arrive → wait for it
+- If neither will arrive → no wait (fire & close)
+
+**`waitForTableEngaged` is the wrong abstraction** — it only handles one case. Needs flow-specific replacement.
 
 ---
 

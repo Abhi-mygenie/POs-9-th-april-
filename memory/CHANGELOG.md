@@ -1,5 +1,53 @@
 # Changelog
 
+## Apr 11, 2026 — Session 10 (Socket Event Audit & Local Locking Analysis)
+
+### Socket Event Audit — COMPLETE ✅
+- Analyzed console logs for ALL order mutation flows (Transfer Order, Transfer Food Item, Cancel Food Item)
+- Documented socket events received per flow with timestamps
+- Built complete Socket Event Map (see CLARIFICATIONS.md §11)
+
+### Endpoint Verification — COMPLETE ✅
+- Confirmed all 3 endpoints stay on v1:
+  - `POST /api/v1/vendoremployee/order/transfer-order`
+  - `POST /api/v1/vendoremployee/order/transfer-food-item`
+  - `PUT /api/v1/vendoremployee/order/cancel-food-item`
+- Temporarily changed to v2, then reverted back to v1 after user confirmed
+
+### Local Locking Audit — COMPLETE ✅
+- Identified 10 locations with local locking that needs removal
+- Established principle: ALL locking from socket events only, zero local locking
+- Documented flow-specific wait logic (which socket event to wait for per flow)
+- Documented in ROADMAP.md TASK-A (removal list) and TASK-B (replacement logic)
+
+### BUG-216 Backend Fix Confirmed
+- User confirmed BUG-216 fix is deployed on backend
+- `free→engage` workaround approved for removal
+- Will also fix BUG-221 (Merge Order source table locked)
+
+### BUG-223 Created — Remove All Local Locking
+- New bug tracking the removal of all local `setTableEngaged`/`waitForTableEngaged` calls
+- 10 locations across 4 files identified
+
+### Documentation Updated
+- `ROADMAP.md` — New TASK-A, TASK-B, TASK-C items
+- `BUGS.md` — BUG-216 status updated, BUG-223 added, socket audit results
+- `CLARIFICATIONS.md` — §11 Socket Event Map, §12 Local Locking Audit
+- `CHANGELOG.md` — This entry
+
+### Transfer Order Scenarios Logged
+| Scenario | Source | Destination | Logs Analyzed |
+|----------|--------|-------------|---------------|
+| Table→Table | 5536→5504 | ✅ | Yes |
+| Walk-in→Table | 0→5510 | ✅ | Yes |
+| Table→Table | 5583→5535 | ✅ | Yes |
+| Table→Table | 5509→5511 | ✅ | Yes |
+
+### Files Modified
+- `api/constants.js` — Endpoint reverted to v1 (was briefly v2)
+
+---
+
 ## Apr 10, 2026 — Session 9 (KOT & Bill Manual Printing)
 
 ### KOT & Bill Manual Printing — COMPLETE

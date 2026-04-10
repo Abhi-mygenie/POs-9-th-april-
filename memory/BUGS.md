@@ -1,6 +1,6 @@
 # POS Frontend - Bug Tracker & Audit Document
 
-**Last Updated:** April 10, 2026 (v4 — Socket-First Architecture Updates)
+**Last Updated:** April 11, 2026 (v5 — Socket Event Audit + Local Locking Removal Plan)
 
 ---
 
@@ -24,9 +24,54 @@
 | 14 | BUG-213 | Collect Bill Shows Only Placed Items | P0 | ✅ FIXED |
 | 15 | BUG-214 | Collect Bill on Existing Order | P0 | ✅ FIXED (V2 Endpoint) |
 | 16 | BUG-215 | Full Order Cancel Treated as Partial | P0 | ✅ FIXED |
-| 17 | BUG-216 | Missing Table Engage, Incorrect Free | P0 | ⚠️ Workaround |
-| 18 | BUG-221 | Merge Order - Source Table Locked | P0 | ❌ OPEN |
-| 19 | **BUG-222** | **waitForTableEngaged timeout on Update Order** | P1 | ✅ FIXED (order-engage) |
+| 17 | BUG-216 | Missing Table Engage, Incorrect Free | P0 | 🔄 Backend Fixed — Workaround Removal Pending |
+| 18 | BUG-221 | Merge Order - Source Table Locked | P0 | 🔄 Will be fixed by BUG-216 workaround removal |
+| 19 | BUG-222 | waitForTableEngaged timeout on Update Order | P1 | ✅ FIXED (order-engage) |
+| 20 | **BUG-223** | **All local locking must be removed** | **P0** | **❌ TODO** |
+
+### April 11, 2026 Updates (Session 10 — Socket Event Audit)
+
+#### BUG-216 — Backend Fix Confirmed → Workaround Removal Pending
+- User confirmed BUG-216 backend fix is deployed
+- `free→engage` workaround in `handleUpdateTable` to be REMOVED
+- `free` should genuinely free/release the table
+- This also fixes BUG-221 (Merge Order source table locked)
+
+#### BUG-223 — NEW: Remove All Local Locking
+**Problem:** Multiple places in the frontend set `setTableEngaged` or call `waitForTableEngaged` locally, without socket events driving the lock. This creates inconsistencies, timeouts, and stuck spinners.
+
+**Principle:** ALL locking must come from socket events only. Zero local locking.
+
+**10 locations to clean:** See ROADMAP.md TASK-A for full list.
+
+**Flow-specific wait logic:** See ROADMAP.md TASK-B for socket event map.
+
+#### Endpoint Verification (April 11, 2026)
+All 3 mutation endpoints confirmed to stay on v1:
+
+| Action | Endpoint | Status |
+|--------|----------|--------|
+| Transfer Order | `POST /api/v1/vendoremployee/order/transfer-order` | ✅ Confirmed v1 |
+| Transfer Food Item | `POST /api/v1/vendoremployee/order/transfer-food-item` | ✅ Confirmed v1 |
+| Cancel Food Item | `PUT /api/v1/vendoremployee/order/cancel-food-item` | ✅ Confirmed v1 |
+
+#### Socket Event Audit Results (Verified via User Console Logs)
+
+**Transfer Order** (3 scenarios tested):
+- Table→Table: `update-table engage` (dest) + `update-order` (no payload) + `update-table free` (source)
+- Walk-in→Table: `update-table engage` (dest) + `update-order` (no payload) + `update-table free` (table 0, skipped)
+- Source table always gets `free` (not `engage` as expected)
+- No `order-engage` event fired
+
+**Transfer Food Item** (2 scenarios tested):
+- 2x `update-order` events (source + target order), both status codes differ
+- NO `update-table` events, NO `order-engage` events
+- Both orders fetch via HTTP GET (no socket payload)
+
+**Cancel Food Item** (1 scenario tested):
+- `update-table free` (table) + `update-order-status` (status 6, but API returns "ready")
+- BUG-216 workaround currently converts `free` → `engage`
+- No `order-engage` event
 
 ### April 10, 2026 Updates
 
@@ -42,10 +87,11 @@
 - Frontend uses `setOrderEngaged()` instead of `setTableEngaged()`
 - Works for ALL order types (dine-in, walk-in, takeaway, delivery)
 
-### Open Bug Notes (April 10, 2026)
+### Open Bug Notes (April 11, 2026)
 - **BUG-210**: Multi-device race condition — needs `isTableEngaged` check BEFORE opening OrderEntry. Low risk now that permission gating prevents unauthorized operations.
 - **BUG-212**: Backend addon name mismatch — frontend workaround possible but not clean. Waiting on backend.
-- **BUG-216**: `free→engage` workaround still in place for cancel-item. Backend sends 'free' instead of 'engage'.
+- **BUG-216**: Backend fix confirmed by user (April 11). `free→engage` workaround to be REMOVED. `free` should genuinely free the table.
+- **BUG-223**: All local locking (without socket events) to be removed. See ROADMAP TASK-A.
 
 ### Status Legend
 - ✅ FIXED - Issue resolved and verified

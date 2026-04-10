@@ -1465,4 +1465,57 @@ SOCKET: update-order [orderId, restaurantId, status, {payload}]
 
 ---
 
+## 19. April 11, 2026 Architecture Updates — Socket Event Audit
+
+### 19.1 Complete Socket Event Map (Verified from Console Logs)
+
+| Flow | HTTP Verb | Endpoint | Socket Events | Has Payload? |
+|------|-----------|----------|---------------|-------------|
+| New Order | POST | v2 place-order | `update-table engage` + `new-order` | ✅ Yes |
+| Update Order | PUT | v2 update-place-order | `order-engage` + `update-order` | ✅ Yes |
+| Transfer Order | POST | v1 transfer-order | `update-table engage/free` + `update-order` | ❌ No |
+| Transfer Food Item | POST | v1 transfer-food-item | 2x `update-order` | ❌ No |
+| Cancel Food Item | PUT | v1 cancel-food-item | `update-table free` + `update-order-status` | ❌ No |
+| Cancel Full Order | PUT | v2 order-status-update | `update-table free` + `update-order-status` | ❌ No |
+| Collect Bill | POST | v2 order-bill-payment | `update-order-status` + `update-table free` | ❌ No |
+
+### 19.2 Locking Architecture (Target State)
+
+**Principle:** ALL UI locking comes from socket events. Zero local locking.
+
+```
+Socket Event                → Frontend Action
+─────────────────────────────────────────────
+update-table engage         → setTableEngaged(tableId, true)
+update-table free           → setTableEngaged(tableId, false) + updateTableStatus('available')
+order-engage engage         → setOrderEngaged(orderId, true)
+order-engage free           → setOrderEngaged(orderId, false)
+update-order (after lock)   → auto-release via requestAnimationFrame
+new-order (after lock)      → auto-release via requestAnimationFrame
+```
+
+**What to wait for before redirect (per flow):**
+
+| Flow | Wait Type |
+|------|-----------|
+| New Order + table | Wait for `update-table engage` |
+| New Order + walk-in | 0.5s delay (no socket lock) |
+| Update Order | Wait for `order-engage` |
+| Transfer Order/Food | Fire & close (no wait) |
+| Cancel Food Item | Wait for `update-table engage` (when backend sends it) |
+
+### 19.3 Endpoint Version Map
+
+| Action | Endpoint Version | Sends Socket Payload? |
+|--------|-----------------|----------------------|
+| Place Order | **v2** | ✅ Yes |
+| Update Order | **v2** | ✅ Yes |
+| Transfer Order | **v1** | ❌ No |
+| Transfer Food Item | **v1** | ❌ No |
+| Cancel Food Item | **v1** | ❌ No |
+| Order Status Update | **v2** | ❌ No |
+| Bill Payment | **v2** | ❌ No |
+
+---
+
 *Document maintained by the MyGenie development team.*
