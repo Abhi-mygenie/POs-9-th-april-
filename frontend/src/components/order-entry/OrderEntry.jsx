@@ -459,9 +459,15 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
         // Wait for socket update-table engage before redirect
         const tableId = Number(table?.tableId);
         if (tableId) {
+          // Physical table - wait for engage socket
           console.log('[PlaceOrder] Waiting for update-table engage socket...');
           await waitForTableEngaged(tableId, 10000);
           console.log('[PlaceOrder] Table engaged, now redirecting to dashboard');
+        } else {
+          // Walk-in/TakeAway/Delivery - no physical table, brief delay for UX
+          console.log('[PlaceOrder] No physical table (walk-in/takeaway/delivery), adding 0.5s delay for UX...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          console.log('[PlaceOrder] Redirecting to dashboard...');
         }
         
         setIsPlacingOrder(false);
