@@ -64,7 +64,7 @@ const parseTableMessage = (message) => {
   
   return {
     event: message[0],
-    tableId: message[1],
+    tableId: Number(message[1]),  // Ensure number type for consistent lookup
     restaurantId: message[2],
     status: message[3],
   };
