@@ -443,11 +443,12 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
         const formData = new FormData();
         formData.append('data', JSON.stringify(payload));
         
-        // Fire HTTP request (don't await) - sockets are faster and handle state
+        // Fire HTTP request (don't await response) - sockets handle state
+        console.log('[PlaceOrder] Firing HTTP request...');
         api.post(API_ENDPOINTS.PLACE_ORDER, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
-          .then(res => console.log('[PlaceOrder] response:', res.data))
+          .then(res => console.log('[PlaceOrder] HTTP response:', res.data))
           .catch(err => {
             console.log('[PlaceOrder] ERROR status:', err?.response?.status);
             console.log('[PlaceOrder] ERROR response:', err?.response?.data);
@@ -455,8 +456,14 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
             toast({ title: "Order Failed", description: apiMsg });
           });
         
-        // Redirect immediately - socket events will update context
-        console.log('[PlaceOrder] Redirecting immediately (socket-first architecture)');
+        // Wait for socket update-table engage before redirect
+        const tableId = Number(table?.tableId);
+        if (tableId) {
+          console.log('[PlaceOrder] Waiting for update-table engage socket...');
+          await waitForTableEngaged(tableId, 10000);
+          console.log('[PlaceOrder] Table engaged, now redirecting to dashboard');
+        }
+        
         setIsPlacingOrder(false);
         onClose();
         return; // Exit early
