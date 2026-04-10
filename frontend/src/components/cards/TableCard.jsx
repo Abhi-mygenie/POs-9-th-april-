@@ -67,9 +67,10 @@ const TableCard = ({ table, onClick, onOpenModal, onUpdateStatus, onBillClick, o
   // Handle KOT print - with station picker
   const handlePrintKot = async (e) => {
     e.stopPropagation();
-    console.log('[TableCard] Print KOT clicked:', { tableId: table.id, orderId: table.orderId, isPrintingKot });
+    console.log('[TableCard] Print KOT clicked:', { tableId: table.id, tableTableId: table.tableId, orderId: table.orderId, isPrintingKot });
     console.log('[TableCard] orderItems prop:', orderItems);
     console.log('[TableCard] table.items:', table.items);
+    console.log('[TableCard] table.order:', table.order);
     console.log('[TableCard] table.order?.items:', table.order?.items);
     
     if (!table.orderId || isPrintingKot) {
