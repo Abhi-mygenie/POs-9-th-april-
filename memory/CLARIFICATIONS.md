@@ -102,3 +102,31 @@
 ---
 
 *Please update this document with answers or direct to relevant API documentation.*
+
+---
+
+## 8. HTTP Response vs Socket Timing for New Order (April 10, 2026)
+
+**Observation:** When placing a new order, the HTTP POST response arrives AFTER socket events.
+
+**Timeline observed:**
+| Time | Event |
+|------|-------|
+| 21:22:16 | Socket: `update-table engage` |
+| 21:22:18 | Socket: `new-order` (complete order data) |
+| 21:22:18 | HTTP response: `{order_id: 730750, ...}` |
+
+**Question:** Why does HTTP response still return after sockets have already handled everything?
+
+**Current understanding:**
+- Sockets are faster and provide complete order data
+- HTTP response is now **redundant for success cases**
+- HTTP response only needed for **error handling** (if API fails, sockets won't arrive)
+
+**Frontend behavior (April 2026):**
+- New Order: Fire HTTP request (don't await), redirect immediately
+- Socket `update-table engage` → locks table
+- Socket `new-order` → updates OrderContext
+- HTTP errors shown via toast if API fails
+
+---

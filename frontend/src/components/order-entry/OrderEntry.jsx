@@ -423,7 +423,8 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
           await waitForTableEngaged(tableId, 5000);
         }
       } else {
-        // Scenario 2 / New Order — Place Order: await API + wait for socket engage before redirect
+        // Scenario 2 / New Order — Fire HTTP, redirect immediately
+        // Socket events (update-table engage → new-order) handle all state updates
         // For Walk-In orders: use walkInTableName as customer name if provided (for table label)
         const effectiveCustomer = orderType === 'walkIn' && walkInTableName
           ? { ...customer, name: walkInTableName }
@@ -441,15 +442,25 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
         console.log('[PlaceOrder] payload:', JSON.stringify(payload, null, 2));
         const formData = new FormData();
         formData.append('data', JSON.stringify(payload));
-        const response = await api.post(API_ENDPOINTS.PLACE_ORDER, formData, {
+        
+        // Fire HTTP request (don't await) - sockets are faster and handle state
+        api.post(API_ENDPOINTS.PLACE_ORDER, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        console.log('[PlaceOrder] response:', response.data);
-        // Socket events (update-table engage → new-order) handle all state updates
-        // No need to wait - redirect immediately
+        })
+          .then(res => console.log('[PlaceOrder] response:', res.data))
+          .catch(err => {
+            console.log('[PlaceOrder] ERROR status:', err?.response?.status);
+            console.log('[PlaceOrder] ERROR response:', err?.response?.data);
+            const apiMsg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Failed';
+            toast({ title: "Order Failed", description: apiMsg });
+          });
+        
+        // Redirect immediately - socket events will update context
+        onClose();
+        return; // Exit early, no need for finally block cleanup here
       }
 
-      // Redirect to dashboard
+      // Redirect to dashboard (for Update Order path)
       onClose();
     } catch (err) {
       console.log('[PlaceOrder] ERROR status:', err?.response?.status);
