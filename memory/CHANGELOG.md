@@ -43,8 +43,23 @@
 | Table→Table | 5583→5535 | ✅ | Yes |
 | Table→Table | 5509→5511 | ✅ | Yes |
 
+### v2 Endpoint Payload Test
+- Tested all 3 endpoints (transfer-order, transfer-food-item, cancel-food-item) on v2
+- **No socket payload in v2** — identical behavior to v1
+- Reverted all 3 back to v1
+- GET single order API still required for these flows
+
+### Additional Socket Events Documented (from Mark Ready/Served/Food Status)
+
+| Flow | Socket Event | GET API? | Local Workaround? |
+|------|-------------|----------|-------------------|
+| Order Ready | `update-order-status` (status 2) | ✅ Yes | ❌ No |
+| Order Served | `update-order-status` (status 5) | ✅ Yes | ❌ No |
+| Item Ready | `update-food-status` (status 2) | ✅ Yes | ⚠️ Yes (table engage/release) |
+| Item Served | `update-food-status` (status 5) | ✅ Yes | ⚠️ Yes (table engage/release) |
+
 ### Files Modified
-- `api/constants.js` — Endpoint reverted to v1 (was briefly v2)
+- `api/constants.js` — Endpoint tested on v2, reverted to v1 (no payload benefit)
 
 ---
 

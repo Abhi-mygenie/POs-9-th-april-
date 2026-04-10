@@ -29,6 +29,17 @@
 | 19 | BUG-222 | waitForTableEngaged timeout on Update Order | P1 | ✅ FIXED (order-engage) |
 | 20 | **BUG-223** | **All local locking must be removed** | **P0** | **❌ TODO** |
 
+#### v2 Endpoint Payload Test (April 11, 2026)
+All 3 endpoints tested on v2 — **no socket payload benefit found**. Reverted to v1.
+
+| Endpoint | v1 Payload? | v2 Payload? | Verdict |
+|----------|------------|------------|---------|
+| transfer-order | ❌ No | ❌ No | Stay v1 |
+| transfer-food-item | ❌ No | ❌ No | Stay v1 |
+| cancel-food-item | ❌ No | ❌ No | Stay v1 |
+
+**Conclusion:** Backend v2 does not add socket payloads for these flows. GET single order API will continue to be called until backend adds payload support.
+
 ### April 11, 2026 Updates (Session 10 — Socket Event Audit)
 
 #### BUG-216 — Backend Fix Confirmed → Workaround Removal Pending
