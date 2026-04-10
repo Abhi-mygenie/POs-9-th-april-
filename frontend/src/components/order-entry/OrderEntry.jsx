@@ -456,8 +456,10 @@ const OrderEntry = ({ table, onClose, orderData, orderType = "delivery", onOrder
           });
         
         // Redirect immediately - socket events will update context
+        console.log('[PlaceOrder] Redirecting immediately (socket-first architecture)');
+        setIsPlacingOrder(false);
         onClose();
-        return; // Exit early, no need for finally block cleanup here
+        return; // Exit early
       }
 
       // Redirect to dashboard (for Update Order path)
