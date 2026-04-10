@@ -1,7 +1,7 @@
 # MyGenie POS Frontend - Complete Architecture Document
 
-**Version:** 3.2 (Layout Settings + Header UX Refinements)
-**Last Updated:** April 9, 2026  
+**Version:** 3.3 (Socket-First Architecture + Order-Engage)
+**Last Updated:** April 10, 2026  
 **Audience:** New developers, maintainers, and technical leads
 
 ---
@@ -1340,7 +1340,7 @@ import { fromAPI, toAPI } from '@/api/transforms/orderTransform';
 ### Context Hooks
 ```javascript
 const { login, logout, user, hasPermission } = useAuth();
-const { orders, addOrder, removeOrder, getOrderById } = useOrders();
+const { orders, addOrder, removeOrder, getOrderById, setOrderEngaged, isOrderEngaged } = useOrders();
 const { tables, updateTableStatus, setTableEngaged } = useTables();
 const { products, categories, getProductById } = useMenu();
 const { restaurant, currencySymbol, cancellation } = useRestaurant();
@@ -1350,6 +1350,118 @@ const { isConnected, subscribe } = useSocket();
 ### Key URLs
 - API: `process.env.REACT_APP_API_BASE_URL`
 - Socket: `process.env.REACT_APP_SOCKET_URL`
+
+---
+
+## 18. April 10, 2026 Architecture Updates
+
+### 18.1 New Socket Channel: `order-engage`
+
+A new socket channel was added for order-level locking:
+
+| Channel | Pattern | Purpose |
+|---------|---------|---------|
+| `new_order_{restaurantId}` | Order events | new-order, update-order, etc. |
+| `update_table_{restaurantId}` | Table events | update-table (engage/free) |
+| **`order-engage_{restaurantId}`** | **Order engage events** | **Lock/unlock order cards** |
+
+#### Message Format
+```javascript
+// order-engage channel (different from other channels - no event name at index 0)
+[orderId, restaurantOrderId, restaurantId, status]
+// Example: [730762, '008639', 644, 'engage']
+
+// Status values: 'engage' | 'free'
+```
+
+### 18.2 Order-Level Locking (engagedOrders)
+
+**Purpose:** Lock order cards during update operations (works for ALL order types)
+
+| Lock Type | State | Used For |
+|-----------|-------|----------|
+| Table-level (`engagedTables`) | `setTableEngaged(tableId, bool)` | New Order (dine-in) |
+| **Order-level (`engagedOrders`)** | `setOrderEngaged(orderId, bool)` | **Update Order (all types)** |
+
+#### Why Order-Level?
+- Walk-in, TakeAway, Delivery orders have `tableId = 0`
+- Cannot lock a table that doesn't exist
+- `order-engage` locks the **order card** directly by orderId
+
+#### OrderContext Additions
+```javascript
+const {
+  engagedOrders,          // Set<number> of locked order IDs
+  setOrderEngaged,        // (orderId, engaged) => void
+  isOrderEngaged,         // (orderId) => boolean
+} = useOrders();
+```
+
+### 18.3 Updated Socket Flows
+
+#### New Order Flow (Socket-First)
+```
+POST /api/v2/.../place-order (fire, no await for response)
+    │
+    ├─► For physical tables: wait for update-table engage socket
+    │   For walk-in/takeaway/delivery: 0.5s delay for UX
+    │
+    ▼
+SOCKET: update-table engage (for dine-in)
+    │
+    ▼
+Redirect to Dashboard
+    │
+    ▼
+SOCKET: new-order (complete payload - no GET API needed)
+    │
+    ├─► addOrder() from socket payload
+    ├─► updateTableStatus() derived from f_order_status
+    └─► setTableEngaged(false) - release
+```
+
+#### Update Order Flow (Order-Engage)
+```
+PUT /api/v2/.../update-place-order
+    │
+    ▼
+SOCKET: order-engage [orderId, restaurantOrderId, restaurantId, 'engage']
+    │
+    └─► setOrderEngaged(orderId, true) - lock order card
+    │
+    ▼
+SOCKET: update-order [orderId, restaurantId, status, {payload}]
+    │
+    ├─► updateOrder() from socket payload (NO GET API)
+    └─► setOrderEngaged(orderId, false) - auto-release
+```
+
+### 18.4 API Endpoint Updates
+
+| Action | Old Endpoint (v1) | New Endpoint (v2) |
+|--------|-------------------|-------------------|
+| Place Order | `/api/v1/.../place-order` | `/api/v2/.../place-order` |
+| Update Order | `/api/v1/.../update-place-order` | `/api/v2/.../update-place-order` |
+
+### 18.5 Key Changes Summary
+
+| Component | Before | After |
+|-----------|--------|-------|
+| `update-order` data source | GET API call | Socket payload |
+| Update Order locking | `setTableEngaged` | `setOrderEngaged` |
+| New Order redirect | Wait for HTTP response | Wait for `update-table engage` socket |
+| Walk-in/Takeaway/Delivery | Immediate redirect | 0.5s delay for UX |
+
+### 18.6 File Changes
+
+| File | Changes |
+|------|---------|
+| `constants.js` | Updated endpoints to v2 |
+| `socketEvents.js` | Added `getOrderEngageChannel()`, `ORDER_ENGAGE` event |
+| `socketHandlers.js` | Added `handleOrderEngage()`, updated `handleUpdateOrder()` to use payload |
+| `useSocketEvents.js` | Subscribe to `order-engage` channel |
+| `OrderContext.jsx` | Added `engagedOrders`, `setOrderEngaged`, `isOrderEngaged` |
+| `OrderEntry.jsx` | Fire HTTP without await, wait for socket before redirect |
 
 ---
 

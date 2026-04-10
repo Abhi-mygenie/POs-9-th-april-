@@ -1,15 +1,15 @@
 # API Document v2 — POS Frontend API Reference
 
-**Version:** 3.5 (Print KOT/Bill API added)
+**Version:** 3.6 (Socket-First Architecture Updates)
 **Last Updated:** April 10, 2026
 
 ## Endpoint Summary
 
 | # | Action | Endpoint | Method | Content-Type |
 |---|--------|----------|--------|-------------|
-| 1 | Place New Order | `/api/v1/vendoremployee/order/place-order` | POST | `multipart/form-data` |
-| 2 | Place + Pay (prepaid) | `/api/v1/vendoremployee/order/place-order` | POST | `multipart/form-data` |
-| 3 | Update Order (add items) | `/api/v1/vendoremployee/order/update-place-order` | PUT | `application/json` |
+| 1 | Place New Order | `/api/v2/vendoremployee/order/place-order` | POST | `multipart/form-data` |
+| 2 | Place + Pay (prepaid) | `/api/v2/vendoremployee/order/place-order` | POST | `multipart/form-data` |
+| 3 | Update Order (add items) | `/api/v2/vendoremployee/order/update-place-order` | PUT | `application/json` |
 | 4 | Collect Bill (existing order) | `/api/v2/vendoremployee/order-bill-payment` | POST | `application/json` |
 | 5 | Cancel Item (full/partial) | `/api/v1/vendoremployee/order/cancel-food-item` | PUT | `application/json` |
 | 6 | Cancel Full Order | `/api/v2/vendoremployee/order-status-update` | PUT | `application/json` |
@@ -20,6 +20,45 @@
 | **11** | **Split Bill** | `/api/v1/vendoremployee/pos/split-order` | POST | `application/json` |
 | **12** | **Payment Methods Mapping** | — | — | See Section 12 |
 | **13** | **Print KOT/Bill** | `/api/v1/vendoremployee/order-temp-store` | POST | `application/json` |
+
+---
+
+## April 10, 2026 Updates
+
+### Endpoint Version Changes
+
+| Action | Old (v1) | New (v2) |
+|--------|----------|----------|
+| Place New Order | `/api/v1/.../place-order` | `/api/v2/.../place-order` |
+| Update Order | `/api/v1/.../update-place-order` | `/api/v2/.../update-place-order` |
+
+### Socket Payload Changes
+
+**v2 endpoints now include complete order data in socket events:**
+
+| Event | v1 Behavior | v2 Behavior |
+|-------|-------------|-------------|
+| `new-order` | Partial data, GET API required | ✅ Complete payload, no GET API |
+| `update-order` | No payload, GET API required | ✅ Complete payload, no GET API |
+
+### New Socket Channel: `order-engage_{restaurantId}`
+
+**Purpose:** Order-level locking for update operations
+
+**Message Format:**
+```javascript
+[orderId, restaurantOrderId, restaurantId, status]
+// Example: [730762, '008639', 644, 'engage']
+```
+
+| Field | Index | Type | Description |
+|-------|-------|------|-------------|
+| orderId | 0 | number | Order ID |
+| restaurantOrderId | 1 | string | Restaurant's order number |
+| restaurantId | 2 | number | Restaurant ID |
+| status | 3 | string | `'engage'` or `'free'` |
+
+**Note:** Unlike other channels, `order-engage` does NOT have an event name at index 0.
 
 ---
 

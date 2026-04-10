@@ -1,6 +1,6 @@
 # POS Frontend - Bug Tracker & Audit Document
 
-**Last Updated:** April 9, 2026 (v3 — Session 6 UX fixes documented)
+**Last Updated:** April 10, 2026 (v4 — Socket-First Architecture Updates)
 
 ---
 
@@ -19,19 +19,33 @@
 | 9 | BUG-208 | Socket Missing Variations/Addons | P0 | ✅ FIXED |
 | 10 | BUG-209 | Placed Item Prices Double-Multiplied | P0 | ✅ FIXED |
 | 11 | BUG-210 | No Table Engage Check (Multi-Device Race) | P0 | ❌ OPEN |
-| 12 | BUG-211 | No `update-table engage` for New Orders | P1 | ⚠️ Workaround |
+| 12 | BUG-211 | No `update-table engage` for New Orders | P1 | ✅ FIXED (v2 API) |
 | 13 | BUG-212 | Addon Names Mismatch Between APIs | P0 | ❌ OPEN (Backend) |
 | 14 | BUG-213 | Collect Bill Shows Only Placed Items | P0 | ✅ FIXED |
 | 15 | BUG-214 | Collect Bill on Existing Order | P0 | ✅ FIXED (V2 Endpoint) |
 | 16 | BUG-215 | Full Order Cancel Treated as Partial | P0 | ✅ FIXED |
-| 17 | BUG-216 | Missing Table Engage, Incorrect Free | P0 | ❌ OPEN (Backend) |
+| 17 | BUG-216 | Missing Table Engage, Incorrect Free | P0 | ⚠️ Workaround |
 | 18 | BUG-221 | Merge Order - Source Table Locked | P0 | ❌ OPEN |
+| 19 | **BUG-222** | **waitForTableEngaged timeout on Update Order** | P1 | ✅ FIXED (order-engage) |
 
-### Open Bug Notes (April 7, 2026)
+### April 10, 2026 Updates
+
+#### BUG-211 - FIXED
+- v2 API now sends `update-table engage` socket BEFORE HTTP response
+- New Order flow now waits for socket before redirect
+
+#### BUG-222 - NEW & FIXED
+**Problem:** `waitForTableEngaged: timeout` on Update Order because backend no longer sends `update-table engage` for updates.
+
+**Solution:** New `order-engage` channel handles order-level locking:
+- Backend sends `order-engage [orderId, restaurantOrderId, restaurantId, 'engage']`
+- Frontend uses `setOrderEngaged()` instead of `setTableEngaged()`
+- Works for ALL order types (dine-in, walk-in, takeaway, delivery)
+
+### Open Bug Notes (April 10, 2026)
 - **BUG-210**: Multi-device race condition — needs `isTableEngaged` check BEFORE opening OrderEntry. Low risk now that permission gating prevents unauthorized operations.
 - **BUG-212**: Backend addon name mismatch — frontend workaround possible but not clean. Waiting on backend.
-- **BUG-216 & BUG-221**: Same root cause — `free→engage` workaround in `socketHandlers.js`. Fix: remove blanket workaround, handle cancel-item locking locally. Both Shift and Merge flows are broken by this.
-- **Permission gating** (implemented April 7, 2026) reduces risk of BUG-210 by preventing unauthorized users from performing conflicting operations.
+- **BUG-216**: `free→engage` workaround still in place for cancel-item. Backend sends 'free' instead of 'engage'.
 
 ### Status Legend
 - ✅ FIXED - Issue resolved and verified

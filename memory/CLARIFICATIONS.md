@@ -124,9 +124,47 @@
 - HTTP response only needed for **error handling** (if API fails, sockets won't arrive)
 
 **Frontend behavior (April 2026):**
-- New Order: Fire HTTP request (don't await), redirect immediately
+- New Order: Fire HTTP request (don't await), wait for `update-table engage` socket, then redirect
 - Socket `update-table engage` → locks table
 - Socket `new-order` → updates OrderContext
 - HTTP errors shown via toast if API fails
+
+---
+
+## 9. Order-Engage Channel (April 10, 2026)
+
+**New channel:** `order-engage_{restaurantId}`
+
+**Purpose:** Order-level locking for Update Order operations. Works for ALL order types (dine-in, walk-in, takeaway, delivery).
+
+**Why needed:**
+- `update-table engage` only works for orders with physical tables
+- Walk-in, TakeAway, Delivery have `tableId = 0` (no table to lock)
+- `order-engage` locks the **order card** by orderId instead
+
+**Message format (different from other channels):**
+```javascript
+// No event name at index 0!
+[orderId, restaurantOrderId, restaurantId, status]
+// Example: [730762, '008639', 644, 'engage']
+```
+
+**Flow:**
+1. `order-engage` (status: 'engage') → Lock order card
+2. `update-order` (with complete payload) → Update context
+3. Auto-release order after context update (no 'free' socket)
+
+---
+
+## 10. Socket Payload Changes (April 10, 2026)
+
+**v2 API endpoints now provide complete order data in socket events:**
+
+| Event | v1 API | v2 API |
+|-------|--------|--------|
+| `new-order` | Partial, needs GET API | ✅ Complete 51-key payload |
+| `update-order` | No payload, needs GET API | ✅ Complete payload |
+
+**Impact:** No more `fetchSingleOrderForSocket()` calls for these events. Faster updates, less API load.
 
 ---
