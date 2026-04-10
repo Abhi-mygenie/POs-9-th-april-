@@ -442,7 +442,7 @@ export const toAPI = {
 
   // ==========================================================================
   // Flow 1: Place New Order (unpaid)
-  // Endpoint: POST /api/v1/vendoremployee/order/place-order (multipart/form-data)
+  // Endpoint: POST /api/v2/vendoremployee/order/place-order (multipart/form-data)
   // ==========================================================================
 
   placeOrder: (table, cartItems, customer, orderType, options = {}) => {
@@ -561,7 +561,7 @@ export const toAPI = {
 
   // ==========================================================================
   // Flow 3: Place New Order + Collect Payment (prepaid)
-  // Endpoint: POST /api/v1/vendoremployee/order/place-order (multipart/form-data)
+  // Endpoint: POST /api/v2/vendoremployee/order/place-order (multipart/form-data)
   // ==========================================================================
 
   placeOrderWithPayment: (table, cartItems, customer, orderType, paymentData, options = {}) => {
@@ -635,7 +635,7 @@ export const toAPI = {
 
   // ==========================================================================
   // Flow 4: Collect Payment on Existing Order (postpaid → paid)
-  // Endpoint: POST /api/v1/vendoremployee/order/place-order (multipart/form-data)
+  // Endpoint: POST /api/v2/vendoremployee/order/place-order (multipart/form-data)
   // ==========================================================================
 
   collectBillExisting: (table, cartItems, customer, paymentData, options = {}) => {
